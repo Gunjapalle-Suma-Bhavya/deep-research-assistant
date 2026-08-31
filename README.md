@@ -3,7 +3,6 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6F00.svg)](https://www.langchain.com/langgraph)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > An enterprise-grade, autonomous Deep Research system built with **LangGraph**, **FastAPI**, and a **modern responsive web interface**. Performs intelligent scoping, multi-topic parallel investigation across web sources, and synthesizes publication-quality research reports with verified citations.
 
@@ -177,9 +176,3 @@ Or using standard Python unittest:
 ```bash
 python3 -m unittest discover -s tests
 ```
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
