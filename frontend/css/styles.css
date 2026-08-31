@@ -26,71 +26,71 @@
 
 /* API Status Indicator Pill */
 .api-status-pill {
-  @apply px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-2 border transition cursor-pointer select-none backdrop-blur-md;
+  @apply px-2.5 py-1 rounded-full text-xs font-medium flex items-center space-x-1.5 border transition cursor-pointer select-none bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-zinc-700;
 }
 .api-status-ready {
-  @apply bg-emerald-950/70 border-emerald-800/80 text-emerald-300 hover:bg-emerald-900/80;
+  @apply bg-zinc-900 border-zinc-800 text-zinc-300;
 }
 .api-status-warning {
-  @apply bg-amber-950/70 border-amber-800/80 text-amber-300 hover:bg-amber-900/80;
+  @apply bg-amber-950/40 border-amber-800/60 text-amber-300;
 }
 .api-status-demo {
-  @apply bg-purple-950/70 border-purple-800/80 text-purple-300 hover:bg-purple-900/80;
+  @apply bg-purple-950/40 border-purple-800/60 text-purple-300;
 }
 
 /* Prompt suggestions chip */
 .prompt-chip {
-  @apply text-xs font-medium px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-blue-950/70 hover:text-blue-200 border border-slate-700/90 hover:border-blue-500/50 text-slate-300 transition-all cursor-pointer select-none shadow-sm active:scale-95 inline-flex items-center;
+  @apply text-xs font-normal px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 transition cursor-pointer select-none inline-flex items-center;
 }
 
 /* Depth & Concurrency selection cards */
 .depth-card {
-  @apply flex flex-col p-3 rounded-xl border border-slate-700/80 bg-slate-800/40 cursor-pointer hover:border-blue-500/40 transition select-none text-center;
+  @apply flex flex-col p-2.5 rounded-lg border border-zinc-800 bg-zinc-950/60 cursor-pointer hover:border-zinc-700 transition select-none text-center;
 }
 .depth-card.selected {
-  @apply border-blue-500 bg-blue-950/40 text-blue-200 ring-2 ring-blue-500/20 shadow-md;
+  @apply border-blue-500/80 bg-blue-950/20 text-blue-300 ring-1 ring-blue-500/30;
 }
 .depth-title {
-  @apply font-bold text-xs text-slate-200;
+  @apply font-medium text-xs text-zinc-200;
 }
 .depth-desc {
-  @apply text-[10px] text-slate-400 mt-0.5;
+  @apply text-[10px] text-zinc-400 mt-0.5;
 }
 
 /* Filter pills in log viewer */
 .filter-tab {
-  @apply px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent transition cursor-pointer select-none;
+  @apply px-2.5 py-1 rounded-md text-[11px] font-medium text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-transparent transition cursor-pointer select-none;
 }
 .filter-tab.active {
-  @apply bg-blue-600/20 text-blue-300 border-blue-500/30 font-semibold;
+  @apply bg-zinc-800 text-zinc-100 font-semibold border-zinc-700;
 }
 
 /* Graph Visualizer Node */
 .graph-node {
-  @apply flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-800/40 transition-all cursor-pointer hover:border-slate-700;
+  @apply flex items-center justify-between p-3 rounded-lg border border-zinc-800 bg-zinc-900/60 transition cursor-pointer hover:border-zinc-700;
 }
 .graph-node.active {
-  @apply border-blue-500 bg-blue-950/50 ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10;
+  @apply border-blue-500/80 bg-blue-950/30 ring-1 ring-blue-500/30;
 }
 .graph-node.completed {
-  @apply border-emerald-600/50 bg-emerald-950/20;
+  @apply border-emerald-600/40 bg-emerald-950/20;
 }
 .node-icon {
-  @apply w-8 h-8 rounded-lg flex items-center justify-center transition-all;
+  @apply w-7 h-7 rounded-md flex items-center justify-center transition-all;
 }
 .node-status-badge {
-  @apply text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono;
+  @apply text-[10px] uppercase font-medium tracking-wider px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-400 font-mono;
 }
 .graph-node.active .node-status-badge {
-  @apply bg-blue-900/80 text-blue-300 animate-pulse;
+  @apply bg-blue-950 text-blue-300 border border-blue-800;
 }
 .graph-node.completed .node-status-badge {
-  @apply bg-emerald-900/60 text-emerald-300;
+  @apply bg-emerald-950 text-emerald-300 border border-emerald-800;
 }
 
 /* Action button in report viewer */
 .action-btn {
-  @apply px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 shadow-sm flex items-center space-x-1.5 transition active:scale-95 cursor-pointer;
+  @apply px-3 py-1.5 rounded-lg text-xs font-medium border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 transition cursor-pointer;
 }
 
 /* Status badges */
