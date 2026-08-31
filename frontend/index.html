@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deep Research - Autonomous Multi-Agent Research System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons & Markdown Parser (Marked.js) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/css/styles.css?v=3" />
+</head>
+<body class="h-full bg-slate-950 text-slate-100 antialiased font-sans flex flex-col overflow-x-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200">
+
+  <!-- Main App Wrapper -->
+  <div class="min-h-full flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        
+        <!-- Left: Logo & System Identity -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="app.resetToNewResearch()">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/20 ring-1 ring-white/10">
+            <i data-lucide="compass" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-300">
+                Deep Research
+              </span>
+              <span class="text-[10px] sm:text-[11px] uppercase tracking-wider px-2 py-0.5 rounded-full font-semibold bg-blue-950/80 text-blue-400 border border-blue-800/60 font-mono">
+                LangGraph Multi-Agent
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 hidden sm:block">Autonomous Scoping, Parallel Investigation & Synthesis</p>
+          </div>
+        </div>
+
+        <!-- Right: Action Controls -->
+        <div class="flex items-center space-x-2 sm:space-x-2.5">
+          
+          <!-- API Key & Engine Status Indicator Pill (Click to open Settings) -->
+          <button id="apiStatusPill" class="api-status-pill api-status-ready" title="Click to configure API keys & models">
+            <span id="apiStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="apiStatusText" class="text-[11px] font-mono">gpt-4o-mini</span>
+          </button>
+
+          <!-- Settings Modal Toggle -->
+          <button id="settingsBtn" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/80 text-xs font-medium transition flex items-center space-x-1.5 cursor-pointer" title="Settings & API Keys">
+            <i data-lucide="settings" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span class="hidden md:inline">Settings</span>
+          </button>
+
+          <!-- New Research Action -->
+          <button onclick="app.resetToNewResearch()" class="hidden md:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-semibold transition cursor-pointer">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            <span>New</span>
+          </button>
+
+          <!-- History / Library Drawer Toggle -->
+          <button id="historyBtn" class="px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/80 text-xs font-medium transition flex items-center space-x-1.5 cursor-pointer" title="View Research History">
+            <i data-lucide="library" class="w-3.5 h-3.5 text-indigo-400"></i>
+            <span class="hidden sm:inline">Library</span>
+            <span id="historyCountBadge" class="px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-mono">0</span>
+          </button>
+
+          <!-- Architecture & Concept Modal Toggle -->
+          <button id="archBtn" class="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition cursor-pointer" title="Architecture & Flow Guide">
+            <i data-lucide="info" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Dark / Light Theme Toggle -->
+          <button id="themeToggle" class="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition cursor-pointer" title="Toggle Theme">
+            <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+            <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+          </button>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <!-- VIEW 1: RESEARCH STUDIO / INPUT PANEL -->
+      <section id="inputSection" class="max-w-3xl mx-auto transition-all duration-300">
+        
+        <!-- Hero Header -->
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-3 shadow-inner">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i>
+            <span>LangGraph Async Multi-Agent Pipeline</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            Autonomous Deep Research Studio
+          </h1>
+          <p class="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+            Formulate complex research questions. The system scopes your topic, coordinates parallel sub-researchers across real-time web sources, and synthesizes an exhaustive, citation-backed report.
+          </p>
+        </div>
+
+        <!-- Research Input Card -->
+        <div class="bg-slate-900/90 rounded-2xl shadow-2xl border border-slate-800 p-6 sm:p-8 backdrop-blur-sm">
+          <form id="researchForm" class="space-y-6">
+            
+            <!-- Research Query Textarea with Clear & Enhance Controls -->
+            <div class="relative">
+              <div class="flex justify-between items-center mb-2">
+                <label for="researchQuery" class="text-sm font-semibold text-slate-200 flex items-center gap-1.5">
+                  <i data-lucide="file-search" class="w-4 h-4 text-blue-400"></i>
+                  <span>Research Topic or Investigation Goal</span>
+                </label>
+                <div class="flex items-center space-x-2 text-xs text-slate-500 font-mono">
+                  <span id="queryWordCounter">0 words</span>
+                  <span>•</span>
+                  <span id="queryCharCounter">0 chars</span>
+                </div>
+              </div>
+
+              <div class="relative">
+                <textarea
+                  id="researchQuery"
+                  rows="4"
+                  required
+                  placeholder="e.g. Provide an in-depth comparative analysis of DeepSeek-R1 vs OpenAI o3 reasoning models, covering architectural innovations, reinforcement learning dynamics, inference efficiency, benchmarks, and cost trade-offs..."
+                  class="w-full px-4 py-3.5 pr-20 rounded-xl border border-slate-700 bg-slate-800/80 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none outline-none text-sm sm:text-base leading-relaxed shadow-inner"
+                ></textarea>
+
+                <!-- Input Action Buttons (Clear & Enhance) -->
+                <div class="absolute right-2.5 top-2.5 flex items-center space-x-1">
+                  <button
+                    type="button"
+                    id="enhancePromptBtn"
+                    class="p-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 text-xs transition cursor-pointer"
+                    title="Enhance & Structure Prompt with AI Research Criteria"
+                  >
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button
+                    type="button"
+                    id="clearPromptBtn"
+                    class="p-1.5 rounded-lg bg-slate-700/60 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs transition cursor-pointer"
+                    title="Clear prompt text"
+                  >
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Suggestions Prompt Chips (Clickable to populate prompt automatically) -->
+            <div>
+              <div class="flex items-center justify-between mb-2.5">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span>Curated Sample Topics (Click to Populate)</span>
+                </span>
+                <span id="promptFilledBadge" class="hidden text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded-full font-medium transition animate-pulse">
+                  ✓ Prompt Inserted
+                </span>
+              </div>
+
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  class="prompt-chip group"
+                  data-prompt="DeepSeek-R1 vs OpenAI o3: Compare reasoning architectures, reinforcement learning with test-time compute, mathematical benchmark performance, and open-weight inference efficiency."
+                >
+                  <span class="text-blue-400 group-hover:text-blue-300 font-bold mr-1">⚡</span>
+                  <span>DeepSeek-R1 vs OpenAI o3</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="prompt-chip group"
+                  data-prompt="State of Solid-State Battery Commercialization: Energy density benchmarks, anode-free designs, safety profiles, leading manufacturers (Toyota, QuantumScape, CATL), and 2026-2030 production timelines."
+                >
+                  <span class="text-emerald-400 group-hover:text-emerald-300 font-bold mr-1">🔋</span>
+                  <span>Solid-State Battery Tech</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="prompt-chip group"
+                  data-prompt="Agentic AI Architecture Patterns: State machines, multi-agent supervisor coordination, Model Context Protocol (MCP) tool integration, and Human-in-the-Loop memory persistence."
+                >
+                  <span class="text-purple-400 group-hover:text-purple-300 font-bold mr-1">🤖</span>
+                  <span>Agentic AI & MCP Patterns</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="prompt-chip group"
+                  data-prompt="CRISPR-Cas9 & Base Editing Clinical Trials: In-vivo vs ex-vivo therapies, sickle cell disease milestones, off-target editing safety, and FDA regulatory landscape."
+                >
+                  <span class="text-rose-400 group-hover:text-rose-300 font-bold mr-1">🧬</span>
+                  <span>CRISPR Gene Editing</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="prompt-chip group"
+                  data-prompt="Nuclear Fusion Commercialization Milestones: Tokamak vs stellarator advances, magnetic confinement records, high-temperature superconducting magnets, and private fusion startup roadmaps."
+                >
+                  <span class="text-amber-400 group-hover:text-amber-300 font-bold mr-1">⚛️</span>
+                  <span>Nuclear Fusion 2026</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Configuration Grid -->
+            <div class="pt-4 border-t border-slate-800 space-y-4">
+              
+              <!-- Row 1: Research Depth Mode & Concurrency -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <!-- Research Depth Selector -->
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                    <span>Research Depth Mode</span>
+                    <span class="text-[10px] text-slate-500 font-mono">Scope level</span>
+                  </label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <label class="depth-card">
+                      <input type="radio" name="depth" value="overview" class="sr-only" />
+                      <span class="depth-title">Overview</span>
+                      <span class="depth-desc">Fast 3 topics</span>
+                    </label>
+                    <label class="depth-card selected">
+                      <input type="radio" name="depth" value="in-depth" checked class="sr-only" />
+                      <span class="depth-title">In-Depth</span>
+                      <span class="depth-desc">Standard 4-5</span>
+                    </label>
+                    <label class="depth-card">
+                      <input type="radio" name="depth" value="comprehensive" class="sr-only" />
+                      <span class="depth-title">Deep Dive</span>
+                      <span class="depth-desc">Exhaustive</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Search Provider Selector -->
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                    <span>Search Engine Provider</span>
+                    <span class="text-[10px] text-blue-400 font-mono">Web retrieval</span>
+                  </label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <label class="depth-card selected" id="searchProviderAuto">
+                      <input type="radio" name="search_provider" value="auto" checked class="sr-only" />
+                      <span class="depth-title">Auto</span>
+                      <span class="depth-desc">Tavily + DDG</span>
+                    </label>
+                    <label class="depth-card" id="searchProviderTavily">
+                      <input type="radio" name="search_provider" value="tavily" class="sr-only" />
+                      <span class="depth-title">Tavily AI</span>
+                      <span class="depth-desc">Fast API</span>
+                    </label>
+                    <label class="depth-card" id="searchProviderDDG">
+                      <input type="radio" name="search_provider" value="duckduckgo" class="sr-only" />
+                      <span class="depth-title">DuckDuckGo</span>
+                      <span class="depth-desc">Free Search</span>
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Row 2: Custom Instructions / Constraints -->
+              <div>
+                <label for="customInstructions" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 flex items-center justify-between">
+                  <span>Custom Constraints & Focus Areas (Optional)</span>
+                  <span class="text-[10px] text-slate-500 font-mono">Custom directives</span>
+                </label>
+                <input
+                  type="text"
+                  id="customInstructions"
+                  placeholder="e.g. Prioritize 2025-2026 academic sources, include comparative markdown tables, focus on security"
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-800/80 text-slate-100 text-sm outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                />
+              </div>
+
+            </div>
+
+            <!-- Submit Action Button Bar -->
+            <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
+              <button
+                type="submit"
+                id="startResearchBtn"
+                class="flex-1 w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500 text-white font-semibold text-base shadow-xl shadow-blue-600/25 transition-all transform active:scale-[0.99] flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                <span>Launch Deep Research</span>
+              </button>
+
+              <button
+                type="button"
+                id="resetFormBtn"
+                onclick="app.resetForm()"
+                class="w-full sm:w-auto px-4 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-sm font-medium transition cursor-pointer flex items-center justify-center space-x-1.5"
+                title="Reset research form"
+              >
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span>Reset</span>
+              </button>
+            </div>
+
+          </form>
+        </div>
+
+      </section>
+
+      <!-- VIEW 2: ACTIVE MULTI-AGENT EXECUTION DASHBOARD -->
+      <section id="progressSection" class="hidden max-w-6xl mx-auto space-y-6">
+
+        <!-- Progress Header Banner -->
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1.5 flex-1 pr-4">
+            <div class="flex items-center space-x-3">
+              <span id="activeStatusBadge" class="status-badge status-running">
+                <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
+                <span id="activeStatusLabel">Scoping Query</span>
+              </span>
+              <span class="text-xs text-slate-400 font-mono" id="activeTaskIdDisplay">Task ID: --</span>
+            </div>
+            <h2 id="activeQueryTitle" class="text-lg sm:text-xl font-bold text-white line-clamp-1">
+              Analyzing research prompt...
+            </h2>
+          </div>
+
+          <!-- Progress Bar & Cancel Control -->
+          <div class="flex items-center space-x-4 w-full md:w-auto">
+            <div class="w-full md:w-56 space-y-1.5">
+              <div class="flex justify-between text-xs font-semibold text-slate-400">
+                <span>Execution Progress</span>
+                <span id="progressBarText">10%</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden ring-1 ring-white/5">
+                <div id="progressBarFill" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-500" style="width: 10%"></div>
+              </div>
+            </div>
+
+            <!-- Cancel Research Action Button -->
+            <button
+              id="cancelResearchBtn"
+              onclick="app.cancelActiveResearch()"
+              class="px-3 py-2 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/80 text-xs font-semibold transition flex items-center space-x-1.5 shrink-0 cursor-pointer"
+              title="Cancel current research"
+            >
+              <i data-lucide="square" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Abort</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Clarification Card (Shown when Scoping Agent flags ambiguity) -->
+        <div id="clarificationModal" class="hidden bg-amber-950/30 border border-amber-500/40 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm">
+          <div class="flex items-start space-x-4">
+            <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 shrink-0">
+              <i data-lucide="help-circle" class="w-6 h-6"></i>
+            </div>
+            <div class="flex-1 space-y-4">
+              <div>
+                <span class="text-xs uppercase tracking-wider font-semibold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full font-mono">Phase 1 Clarification</span>
+                <h3 class="text-lg font-bold text-amber-200 mt-1">
+                  Clarification Requested by Scoping Agent
+                </h3>
+                <p id="clarificationReason" class="text-sm text-amber-300/80 mt-1">
+                  To provide the most accurate research, please answer these scoping questions:
+                </p>
+              </div>
+
+              <!-- Clarification Questions Form -->
+              <form id="clarificationForm" class="space-y-4">
+                <div id="clarificationQuestionsList" class="space-y-3"></div>
+
+                <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    id="skipClarificationBtn"
+                    onclick="app.skipClarification()"
+                    class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-medium text-xs transition cursor-pointer"
+                  >
+                    <span>Skip & Use Best Judgment</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    id="submitClarificationBtn"
+                    class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-amber-900/30 transition flex items-center space-x-2 cursor-pointer"
+                  >
+                    <span>Submit & Resume Research</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multi-Agent Workflow Visualizer Graph -->
+        <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-sm">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+              <i data-lucide="workflow" class="w-4 h-4 text-blue-400"></i>
+              <span>Multi-Agent LangGraph Pipeline Status</span>
+            </h3>
+            <span class="text-[11px] text-slate-500 font-mono">Parallel Async Orchestration</span>
+          </div>
+
+          <!-- 4-Stage Interactive Pipeline -->
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            
+            <!-- Node 1: Scope -->
+            <div id="graphNodeScope" class="graph-node active" onclick="app.filterLogsByNode('scope')">
+              <div class="flex items-center space-x-2.5">
+                <div class="node-icon bg-blue-600 text-white">
+                  <i data-lucide="filter" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold">1. Scoping</h4>
+                  <p class="text-[11px] text-slate-400">Clarify & Brief</p>
+                </div>
+              </div>
+              <span class="node-status-badge">Active</span>
+            </div>
+
+            <!-- Node 2: Supervisor -->
+            <div id="graphNodeSupervisor" class="graph-node" onclick="app.filterLogsByNode('supervisor')">
+              <div class="flex items-center space-x-2.5">
+                <div class="node-icon bg-slate-800 text-slate-400">
+                  <i data-lucide="git-fork" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold">2. Supervisor</h4>
+                  <p class="text-[11px] text-slate-400">Task Decomposition</p>
+                </div>
+              </div>
+              <span class="node-status-badge">Waiting</span>
+            </div>
+
+            <!-- Node 3: Workers -->
+            <div id="graphNodeWorkers" class="graph-node" onclick="app.filterLogsByNode('workers')">
+              <div class="flex items-center space-x-2.5">
+                <div class="node-icon bg-slate-800 text-slate-400">
+                  <i data-lucide="search" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold">3. Sub-Researchers</h4>
+                  <p class="text-[11px] text-slate-400">Parallel Search & Sum</p>
+                </div>
+              </div>
+              <span class="node-status-badge">Waiting</span>
+            </div>
+
+            <!-- Node 4: Writer -->
+            <div id="graphNodeWriter" class="graph-node" onclick="app.filterLogsByNode('writer')">
+              <div class="flex items-center space-x-2.5">
+                <div class="node-icon bg-slate-800 text-slate-400">
+                  <i data-lucide="file-text" class="w-4 h-4"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold">4. Report Writer</h4>
+                  <p class="text-[11px] text-slate-400">Synthesis & Citations</p>
+                </div>
+              </div>
+              <span class="node-status-badge">Waiting</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Two-Column Live Activity & Brief Overview -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          <!-- Left 2 Cols: Activity Feed Terminal with Filters & Controls -->
+          <div class="lg:col-span-2 bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-sm flex flex-col h-[520px]">
+            
+            <!-- Terminal Header Controls -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+              <div class="flex items-center space-x-2">
+                <i data-lucide="terminal" class="w-4 h-4 text-indigo-400"></i>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Live Multi-Agent Activity Stream
+                </h3>
+                <span id="logCount" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">0 events</span>
+              </div>
+
+              <!-- Log Action Buttons -->
+              <div class="flex items-center space-x-1.5">
+                <button
+                  type="button"
+                  id="copyLogsBtn"
+                  onclick="app.copyActivityLogs()"
+                  class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs transition cursor-pointer"
+                  title="Copy full event stream logs"
+                >
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                </button>
+                <button
+                  type="button"
+                  id="clearLogsBtn"
+                  onclick="app.clearActivityLogs()"
+                  class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs transition cursor-pointer"
+                  title="Clear log screen"
+                >
+                  <i data-lucide="eraser" class="w-3.5 h-3.5"></i>
+                </button>
+                <button
+                  type="button"
+                  id="autoScrollToggle"
+                  onclick="app.toggleAutoScroll()"
+                  class="px-2 py-1 rounded-lg bg-blue-600/20 text-blue-300 border border-blue-500/30 text-[11px] font-mono transition cursor-pointer"
+                  title="Toggle Auto-Scroll"
+                >
+                  Auto-Scroll: ON
+                </button>
+              </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex flex-wrap items-center gap-1.5 py-2.5 border-b border-slate-800/60">
+              <button type="button" class="filter-tab active" data-filter="all" onclick="app.setLogFilter('all')">All Events</button>
+              <button type="button" class="filter-tab" data-filter="scoping" onclick="app.setLogFilter('scoping')">Scoping</button>
+              <button type="button" class="filter-tab" data-filter="supervisor" onclick="app.setLogFilter('supervisor')">Supervisor</button>
+              <button type="button" class="filter-tab" data-filter="search" onclick="app.setLogFilter('search')">Subagents</button>
+              <button type="button" class="filter-tab" data-filter="writer" onclick="app.setLogFilter('writer')">Writer</button>
+              <button type="button" class="filter-tab" data-filter="error" onclick="app.setLogFilter('error')">Errors</button>
+            </div>
+
+            <!-- Activity Logs Scroll Container -->
+            <div id="activityLogsContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-2 py-3 font-mono text-xs">
+              <!-- Logs populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Right 1 Col: Active Brief & Evidence Stats -->
+          <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-sm flex flex-col h-[520px]">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-2">
+                <i data-lucide="layers" class="w-4 h-4 text-violet-400"></i>
+                <span>Structured Research Brief</span>
+              </h3>
+              <button
+                type="button"
+                id="viewSourcesBtn"
+                onclick="app.openSourcesModal()"
+                class="text-[11px] text-blue-400 hover:text-blue-300 flex items-center space-x-1 cursor-pointer"
+              >
+                <span>Sources</span>
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+              </button>
+            </div>
+
+            <div id="briefContentPlaceholder" class="flex-1 flex flex-col items-center justify-center text-center p-4 text-slate-500">
+              <i data-lucide="loader" class="w-8 h-8 animate-spin mb-2 text-blue-500"></i>
+              <p class="text-xs">Scoping agent is generating structured brief and sub-topics...</p>
+            </div>
+
+            <div id="briefContentContainer" class="hidden flex-1 overflow-y-auto space-y-4 text-xs">
+              <div>
+                <span class="text-slate-400 block font-semibold mb-1">Core Investigation Question</span>
+                <p id="briefCoreQuestion" class="font-medium text-slate-200 bg-slate-800/60 p-2.5 rounded-lg border border-slate-700/60"></p>
+              </div>
+
+              <div>
+                <span class="text-slate-400 block font-semibold mb-1">Parallel Sub-Topics</span>
+                <div id="briefSubtopicsList" class="space-y-1.5"></div>
+              </div>
+
+              <div class="pt-2 border-t border-slate-800">
+                <span class="text-slate-400 block font-semibold mb-1">Discovered Sources</span>
+                <div class="flex items-center justify-between">
+                  <div id="sourcesSummaryCount" class="text-blue-400 font-semibold flex items-center gap-1.5">
+                    <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                    <span>0 web citations gathered</span>
+                  </div>
+                  <button onclick="app.openSourcesModal()" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 cursor-pointer">
+                    Inspect Sources
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- VIEW 3: FINAL SYNTHESIZED REPORT VIEWER -->
+      <section id="reportSection" class="hidden max-w-5xl mx-auto space-y-6">
+
+        <!-- Report Toolbar -->
+        <div class="bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-800 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div class="flex items-center space-x-3">
+            <button onclick="app.resetToNewResearch()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer" title="Start New Research">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+            </button>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60">
+                  Research Complete
+                </span>
+                <span id="reportStatsBadge" class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">
+                  ⏱️ ~4 min read
+                </span>
+              </div>
+              <h2 id="finalReportHeaderTitle" class="text-lg font-bold text-white mt-1 line-clamp-1">
+                Deep Research Report
+              </h2>
+            </div>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="copyReportBtn" onclick="app.copyReportToClipboard()" class="action-btn" title="Copy report to clipboard">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+              <span>Copy</span>
+            </button>
+            <button onclick="app.exportReport('md')" class="action-btn" title="Download Markdown">
+              <i data-lucide="file-code" class="w-4 h-4"></i>
+              <span>Markdown</span>
+            </button>
+            <button onclick="app.exportReport('html')" class="action-btn" title="Download HTML Document">
+              <i data-lucide="file-down" class="w-4 h-4"></i>
+              <span>HTML</span>
+            </button>
+            <button id="printReportBtn" onclick="window.print()" class="action-btn" title="Print or Save as PDF">
+              <i data-lucide="printer" class="w-4 h-4 text-purple-400"></i>
+              <span>PDF / Print</span>
+            </button>
+            <button id="viewSourcesReportBtn" onclick="app.openSourcesModal()" class="action-btn" title="Inspect Citations & Sources">
+              <i data-lucide="link-2" class="w-4 h-4 text-blue-400"></i>
+              <span>Sources</span>
+            </button>
+            <button id="viewJsonReportBtn" onclick="app.openJsonModal()" class="action-btn" title="Inspect Raw JSON State">
+              <i data-lucide="code" class="w-4 h-4 text-amber-400"></i>
+              <span>JSON</span>
+            </button>
+            <button id="viewTraceLogsBtn" onclick="app.returnToExecutionTrace()" class="action-btn" title="View execution logs & timeline">
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+              <span>Trace</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Rendered Report Content -->
+        <div class="bg-slate-900 rounded-2xl p-8 sm:p-12 border border-slate-800 shadow-2xl">
+          <article id="reportMarkdownContainer" class="prose prose-invert max-w-none text-slate-200">
+            <!-- Dynamic rendered markdown output -->
+          </article>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- SETTINGS & API CONFIGURATION MODAL -->
+    <!-- ===================================================================== -->
+    <div id="settingsModal" class="modal-backdrop hidden">
+      <div class="modal-container max-w-2xl max-h-[90vh] flex flex-col">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="settings" class="w-5 h-5 text-blue-400"></i>
+            <div>
+              <h3 class="font-bold text-lg text-white">System Settings & API Configuration</h3>
+              <p class="text-xs text-slate-400">Configure LLM providers, search engines, and demo mode</p>
+            </div>
+          </div>
+          <button id="closeSettingsBtn" class="text-slate-400 hover:text-white cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Body Form -->
+        <form id="settingsForm" class="space-y-4 py-4 overflow-y-auto flex-1 text-xs sm:text-sm">
+          
+          <!-- LLM Provider Preset Buttons -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              LLM Provider Quick-Select
+            </label>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              <button type="button" class="provider-preset-btn p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-xs font-semibold text-center transition" data-provider="openai">OpenAI</button>
+              <button type="button" class="provider-preset-btn p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-xs font-semibold text-center transition" data-provider="deepseek">DeepSeek</button>
+              <button type="button" class="provider-preset-btn p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-xs font-semibold text-center transition" data-provider="openrouter">OpenRouter</button>
+              <button type="button" class="provider-preset-btn p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-xs font-semibold text-center transition" data-provider="groq">Groq</button>
+              <button type="button" class="provider-preset-btn p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-xs font-semibold text-center transition" data-provider="ollama">Ollama</button>
+              <button type="button" class="provider-preset-btn p-2 rounded-lg bg-slate-800 border border-slate-700 hover:border-blue-500 text-xs font-semibold text-center transition" data-provider="custom">Custom</button>
+            </div>
+          </div>
+
+          <!-- OpenAI / LLM API Key (Masked with Eye Toggle) -->
+          <div>
+            <label for="settingsApiKey" class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+              <span>OpenAI-Compatible API Key</span>
+              <span id="apiKeyMaskedHint" class="text-[11px] text-emerald-400 font-mono"></span>
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="settingsApiKey"
+                placeholder="sk-proj-..."
+                class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-700 bg-slate-800 text-slate-100 text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                id="toggleApiKeyVisibility"
+                class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-200 cursor-pointer"
+                title="Toggle visibility"
+              >
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">Keys are stored securely in runtime memory or session environment.</p>
+          </div>
+
+          <!-- Base URL & Model Name -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label for="settingsBaseUrl" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                API Base URL Endpoint
+              </label>
+              <input
+                type="text"
+                id="settingsBaseUrl"
+                placeholder="https://api.openai.com/v1"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-100 text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label for="settingsModel" class="block text-xs font-semibold text-slate-300 mb-1.5">
+                Model Name
+              </label>
+              <input
+                type="text"
+                id="settingsModel"
+                placeholder="gpt-4o-mini"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-100 text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <!-- Tavily API Key (Optional) -->
+          <div>
+            <label for="settingsTavilyKey" class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+              <span>Tavily Search API Key (Optional)</span>
+              <span id="tavilyKeyMaskedHint" class="text-[11px] text-emerald-400 font-mono"></span>
+            </label>
+            <div class="relative">
+              <input
+                type="password"
+                id="settingsTavilyKey"
+                placeholder="tvly-..."
+                class="w-full px-3.5 py-2.5 pr-10 rounded-xl border border-slate-700 bg-slate-800 text-slate-100 text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="button"
+                id="toggleTavilyKeyVisibility"
+                class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-200 cursor-pointer"
+                title="Toggle visibility"
+              >
+                <i data-lucide="eye" class="w-4 h-4"></i>
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1">If blank, DuckDuckGo Free Search is used automatically with zero setup.</p>
+          </div>
+
+          <!-- Zero-Cost Demo / Portfolio Presentation Mode Toggle -->
+          <div class="p-3.5 rounded-xl bg-purple-950/30 border border-purple-800/40 flex items-center justify-between">
+            <div>
+              <span class="font-bold text-xs text-purple-300 flex items-center gap-1.5">
+                <i data-lucide="presentation" class="w-4 h-4 text-purple-400"></i>
+                <span>Demo & Portfolio Presentation Mode</span>
+              </span>
+              <p class="text-[11px] text-purple-300/70 mt-0.5">Enables simulated zero-cost execution for recruiters and reviewers.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="settingsDemoMode" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <!-- Connection Diagnostic Result Box -->
+          <div id="connectionDiagnosticBox" class="hidden p-3 rounded-xl text-xs font-mono space-y-1"></div>
+
+          <!-- Modal Action Buttons -->
+          <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800">
+            <button
+              type="button"
+              id="testConnectionBtn"
+              onclick="app.testSystemConnection()"
+              class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition flex items-center space-x-1.5 cursor-pointer"
+            >
+              <i data-lucide="activity" class="w-3.5 h-3.5 text-blue-400"></i>
+              <span>Test Connection</span>
+            </button>
+
+            <div class="flex items-center space-x-2">
+              <button
+                type="button"
+                id="resetSettingsBtn"
+                onclick="app.resetSettingsToDefaults()"
+                class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-xs transition cursor-pointer"
+              >
+                Reset
+              </button>
+              <button
+                type="submit"
+                id="saveSettingsBtn"
+                class="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs transition shadow-md shadow-blue-600/20 cursor-pointer"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- SOURCES & CITATIONS MODAL -->
+    <!-- ===================================================================== -->
+    <div id="sourcesModal" class="modal-backdrop hidden">
+      <div class="modal-container max-w-3xl max-h-[85vh] flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="link-2" class="w-5 h-5 text-blue-400"></i>
+            <div>
+              <h3 class="font-bold text-lg text-white">Discovered Sources & Citations</h3>
+              <p id="sourcesModalSubtitle" class="text-xs text-slate-400">0 web references verified</p>
+            </div>
+          </div>
+          <button id="closeSourcesBtn" class="text-slate-400 hover:text-white cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div id="sourcesModalList" class="space-y-3 py-4 overflow-y-auto flex-1 text-xs">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- RAW JSON STATE MODAL -->
+    <!-- ===================================================================== -->
+    <div id="jsonModal" class="modal-backdrop hidden">
+      <div class="modal-container max-w-3xl max-h-[85vh] flex flex-col">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="code" class="w-5 h-5 text-amber-400"></i>
+            <div>
+              <h3 class="font-bold text-lg text-white">LangGraph State & Task Data</h3>
+              <p class="text-xs text-slate-400">Underlying JSON state payload</p>
+            </div>
+          </div>
+          <button id="closeJsonBtn" class="text-slate-400 hover:text-white cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <div class="py-3 flex justify-end">
+          <button id="copyJsonBtn" onclick="app.copyRawJson()" class="action-btn text-xs">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copy JSON</span>
+          </button>
+        </div>
+
+        <pre id="jsonModalContent" class="flex-1 overflow-y-auto p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs select-all"></pre>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- ARCHITECTURE & CONCEPT MODAL -->
+    <!-- ===================================================================== -->
+    <div id="archModal" class="modal-backdrop hidden">
+      <div class="modal-container max-w-3xl max-h-[90vh] flex flex-col">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="git-merge" class="w-5 h-5 text-blue-400"></i>
+            <div>
+              <h3 class="font-bold text-lg text-white">System Architecture & Multi-Agent Flow</h3>
+              <p class="text-xs text-slate-400">LangGraph orchestration, state machines, and tools</p>
+            </div>
+          </div>
+          <button id="closeArchBtn" class="text-slate-400 hover:text-white cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Tabbed Content -->
+        <div class="py-3 border-b border-slate-800/80 flex space-x-2">
+          <button type="button" class="filter-tab active" data-arch-tab="flow" onclick="app.setArchTab('flow')">Workflow Pipeline</button>
+          <button type="button" class="filter-tab" data-arch-tab="state" onclick="app.setArchTab('state')">State Graph</button>
+          <button type="button" class="filter-tab" data-arch-tab="tools" onclick="app.setArchTab('tools')">Tools & MCP</button>
+          <button type="button" class="filter-tab" data-arch-tab="resume" onclick="app.setArchTab('resume')">Resume Highlights</button>
+        </div>
+
+        <div class="space-y-4 py-4 text-xs sm:text-sm text-slate-300 overflow-y-auto flex-1">
+          
+          <!-- Tab 1: Flow -->
+          <div id="archTabFlow" class="space-y-3">
+            <p class="leading-relaxed text-slate-300">
+              This system implements a production-grade 3-phase autonomous deep research workflow with 5 LangGraph nodes:
+            </p>
+
+            <div class="space-y-3">
+              <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                <h4 class="font-bold text-blue-400 text-xs uppercase">1. Scoping & User Clarification (`scoping.py`)</h4>
+                <p class="text-xs text-slate-400 mt-1">Evaluates user queries for ambiguity using structured Pydantic schemas (<code class="text-pink-400">ClarifyWithUser</code>), pauses execution if details are needed, and outputs a date-aware <code class="text-pink-400">ResearchQuestion</code> brief.</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                <h4 class="font-bold text-indigo-400 text-xs uppercase">2. Supervisor Planning & Delegation (`supervisor.py`)</h4>
+                <p class="text-xs text-slate-400 mt-1">Decomposes briefs into distinct sub-topics and orchestrates parallel subagents concurrently using <code class="text-pink-400">asyncio.gather</code> with isolated context windows.</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                <h4 class="font-bold text-emerald-400 text-xs uppercase">3. Parallel ReAct Sub-Researchers (`research_agent.py`)</h4>
+                <p class="text-xs text-slate-400 mt-1">Equipped with Tavily API and DuckDuckGo fallback tools, extracting web page excerpts and synthesizing structured <code class="text-pink-400">ResearchNote</code> objects.</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+                <h4 class="font-bold text-amber-400 text-xs uppercase">4. Synthesis & Report Writing (`writer.py`)</h4>
+                <p class="text-xs text-slate-400 mt-1">Aggregates all research notes into an exhaustive Markdown report with Executive Summary, Body Sections, Key Takeaways, and formal Citations.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: State -->
+          <div id="archTabState" class="hidden space-y-3">
+            <p class="leading-relaxed">
+              LangGraph manages state persistence across immutable Pydantic schemas:
+            </p>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300">
+              <p class="text-blue-400 font-bold"># LangGraph State Definitions</p>
+              <p>• <span class="text-indigo-300">ScopingState</span>: user_query, user_response, clarification, research_brief</p>
+              <p>• <span class="text-indigo-300">SupervisorState</span>: research_brief, delegated_tasks, completed_notes</p>
+              <p>• <span class="text-indigo-300">WorkerState</span>: topic, search_queries, raw_results, notes</p>
+              <p>• <span class="text-indigo-300">ResearchReport</span>: title, executive_summary, sources, full_markdown</p>
+            </div>
+          </div>
+
+          <!-- Tab 3: Tools -->
+          <div id="archTabTools" class="hidden space-y-3">
+            <p class="leading-relaxed">
+              Standardized tool adapters support multiple search backends and Model Context Protocol (MCP):
+            </p>
+            <ul class="list-disc pl-5 space-y-1.5 text-xs text-slate-400">
+              <li><strong class="text-slate-200">Tavily Search API</strong>: Advanced semantic query search with raw content extraction.</li>
+              <li><strong class="text-slate-200">DuckDuckGo Search</strong>: Resilient zero-configuration fallback search tool.</li>
+              <li><strong class="text-slate-200">Page Content Extractor</strong>: Async HTTP client with BeautifulSoup HTML sanitizer.</li>
+              <li><strong class="text-slate-200">Model Context Protocol (MCP)</strong>: Standardized JSON-RPC protocol adapters.</li>
+            </ul>
+          </div>
+
+          <!-- Tab 4: Resume Highlights -->
+          <div id="archTabResume" class="hidden space-y-3">
+            <div class="p-3.5 rounded-xl bg-blue-950/30 border border-blue-800/40 space-y-2">
+              <h4 class="font-bold text-xs text-blue-300 uppercase">Key Technical Achievements for Resume & Interviews</h4>
+              <ul class="list-disc pl-5 space-y-1 text-xs text-slate-300">
+                <li>Designed an asynchronous multi-agent orchestration architecture using LangGraph and FastAPI.</li>
+                <li>Implemented human-in-the-loop clarification using Pydantic structured outputs and SSE event streaming.</li>
+                <li>Achieved 4x latency reduction via concurrent worker delegation with <code class="text-pink-400">asyncio.gather</code> and context isolation.</li>
+                <li>Engineered resilient multi-provider LLM support (OpenAI, DeepSeek, OpenRouter, Ollama) and dynamic runtime configuration.</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- HISTORY & RESEARCH LIBRARY DRAWER -->
+    <!-- ===================================================================== -->
+    <div id="historyDrawer" class="drawer-backdrop hidden">
+      <div class="drawer-container">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="library" class="w-5 h-5 text-indigo-400"></i>
+            <div>
+              <h3 class="font-bold text-base text-white">Research Library</h3>
+              <p class="text-[11px] text-slate-400">Past research sessions & reports</p>
+            </div>
+          </div>
+          <button id="closeHistoryBtn" class="text-slate-400 hover:text-white cursor-pointer">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- Search Bar & Controls -->
+        <div class="py-3 border-b border-slate-800 flex items-center justify-between gap-2">
+          <div class="relative flex-1">
+            <input
+              type="text"
+              id="historySearchInput"
+              placeholder="Filter past sessions..."
+              class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 text-slate-100 text-xs outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5"></i>
+          </div>
+
+          <button
+            type="button"
+            id="clearAllHistoryBtn"
+            onclick="app.clearAllHistory()"
+            class="p-1.5 rounded-lg bg-slate-800 hover:bg-red-950/60 text-slate-400 hover:text-red-400 border border-slate-700 text-xs transition cursor-pointer"
+            title="Clear all research history"
+          >
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- History List Container -->
+        <div id="historyListContainer" class="flex-1 overflow-y-auto py-3 space-y-2.5 text-xs">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Application Scripts -->
+  <script src="/static/js/api.js?v=3"></script>
+  <script src="/static/js/stream.js?v=3"></script>
+  <script src="/static/js/graph_view.js?v=3"></script>
+  <script src="/static/js/app.js?v=3"></script>
+
+</body>
+</html>

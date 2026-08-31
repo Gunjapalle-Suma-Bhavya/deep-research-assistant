@@ -1,0 +1,207 @@
+/* Deep Research Assistant - Modern Stylesheet */
+
+@layer utilities {
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+}
+
+/* Custom smooth scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(51, 65, 85, 0.8);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 1);
+}
+
+/* API Status Indicator Pill */
+.api-status-pill {
+  @apply px-3 py-1 rounded-full text-xs font-semibold flex items-center space-x-2 border transition cursor-pointer select-none backdrop-blur-md;
+}
+.api-status-ready {
+  @apply bg-emerald-950/70 border-emerald-800/80 text-emerald-300 hover:bg-emerald-900/80;
+}
+.api-status-warning {
+  @apply bg-amber-950/70 border-amber-800/80 text-amber-300 hover:bg-amber-900/80;
+}
+.api-status-demo {
+  @apply bg-purple-950/70 border-purple-800/80 text-purple-300 hover:bg-purple-900/80;
+}
+
+/* Prompt suggestions chip */
+.prompt-chip {
+  @apply text-xs font-medium px-3.5 py-2 rounded-xl bg-slate-800/90 hover:bg-blue-950/70 hover:text-blue-200 border border-slate-700/90 hover:border-blue-500/50 text-slate-300 transition-all cursor-pointer select-none shadow-sm active:scale-95 inline-flex items-center;
+}
+
+/* Depth & Concurrency selection cards */
+.depth-card {
+  @apply flex flex-col p-3 rounded-xl border border-slate-700/80 bg-slate-800/40 cursor-pointer hover:border-blue-500/40 transition select-none text-center;
+}
+.depth-card.selected {
+  @apply border-blue-500 bg-blue-950/40 text-blue-200 ring-2 ring-blue-500/20 shadow-md;
+}
+.depth-title {
+  @apply font-bold text-xs text-slate-200;
+}
+.depth-desc {
+  @apply text-[10px] text-slate-400 mt-0.5;
+}
+
+/* Filter pills in log viewer */
+.filter-tab {
+  @apply px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent transition cursor-pointer select-none;
+}
+.filter-tab.active {
+  @apply bg-blue-600/20 text-blue-300 border-blue-500/30 font-semibold;
+}
+
+/* Graph Visualizer Node */
+.graph-node {
+  @apply flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-800/40 transition-all cursor-pointer hover:border-slate-700;
+}
+.graph-node.active {
+  @apply border-blue-500 bg-blue-950/50 ring-2 ring-blue-500/30 shadow-lg shadow-blue-500/10;
+}
+.graph-node.completed {
+  @apply border-emerald-600/50 bg-emerald-950/20;
+}
+.node-icon {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center transition-all;
+}
+.node-status-badge {
+  @apply text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono;
+}
+.graph-node.active .node-status-badge {
+  @apply bg-blue-900/80 text-blue-300 animate-pulse;
+}
+.graph-node.completed .node-status-badge {
+  @apply bg-emerald-900/60 text-emerald-300;
+}
+
+/* Action button in report viewer */
+.action-btn {
+  @apply px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 shadow-sm flex items-center space-x-1.5 transition active:scale-95 cursor-pointer;
+}
+
+/* Status badges */
+.status-badge {
+  @apply inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+}
+.status-running {
+  @apply bg-blue-950/60 text-blue-300 border border-blue-800/80;
+}
+.status-completed {
+  @apply bg-emerald-950/60 text-emerald-300 border border-emerald-800/80;
+}
+.status-waiting {
+  @apply bg-amber-950/60 text-amber-300 border border-amber-800/80;
+}
+
+/* Modal Backdrops & Drawers */
+.modal-backdrop {
+  @apply fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4;
+}
+.modal-container {
+  @apply bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150;
+}
+
+.drawer-backdrop {
+  @apply fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex justify-end;
+}
+.drawer-container {
+  @apply bg-slate-900 border-l border-slate-800 w-full max-w-md h-full p-6 shadow-2xl flex flex-col;
+}
+
+/* Activity Log Entry */
+.log-entry {
+  @apply p-2.5 rounded-lg border border-slate-800/80 bg-slate-800/40 text-slate-300 flex items-start space-x-2.5 transition;
+}
+.log-entry:hover {
+  @apply bg-slate-800/80 border-slate-700;
+}
+
+/* Markdown typography styling */
+.prose h1 {
+  @apply text-2xl sm:text-3xl font-extrabold text-white mt-6 mb-4 border-b border-slate-800 pb-3;
+}
+.prose h2 {
+  @apply text-xl sm:text-2xl font-bold text-slate-100 mt-8 mb-3 border-b border-slate-800 pb-2;
+}
+.prose h3 {
+  @apply text-base sm:text-lg font-semibold text-blue-400 mt-6 mb-2;
+}
+.prose p {
+  @apply text-slate-300 leading-relaxed mb-4 text-sm sm:text-base;
+}
+.prose ul {
+  @apply list-disc list-outside pl-6 space-y-1.5 text-slate-300 mb-4 text-sm sm:text-base;
+}
+.prose ol {
+  @apply list-decimal list-outside pl-6 space-y-1.5 text-slate-300 mb-4 text-sm sm:text-base;
+}
+.prose blockquote {
+  @apply border-l-4 border-blue-500 pl-4 italic text-slate-400 my-4 bg-slate-800/30 py-2 rounded-r-lg;
+}
+.prose a {
+  @apply text-blue-400 underline underline-offset-2 hover:text-blue-300 font-medium;
+}
+.prose code {
+  @apply px-1.5 py-0.5 rounded bg-slate-800 text-pink-400 font-mono text-xs;
+}
+.prose pre {
+  @apply p-4 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 overflow-x-auto my-4 text-xs font-mono;
+}
+.prose table {
+  @apply w-full text-left border-collapse my-6 text-xs sm:text-sm;
+}
+.prose th {
+  @apply bg-slate-800/80 text-slate-200 font-semibold p-3 border-b border-slate-700;
+}
+.prose td {
+  @apply p-3 border-b border-slate-800/80 text-slate-300;
+}
+.prose tr:hover td {
+  @apply bg-slate-800/40;
+}
+
+/* Print Stylesheet for PDF/Print Export */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header, #inputSection, #progressSection, .action-btn, #historyDrawer, #archModal, #settingsModal, #sourcesModal, #jsonModal {
+    display: none !important;
+  }
+  #reportSection {
+    display: block !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .prose {
+    color: #111827 !important;
+  }
+  .prose h1, .prose h2, .prose h3 {
+    color: #111827 !important;
+  }
+  .prose a {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+  }
+  .prose table, .prose th, .prose td {
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+  }
+}
+
