@@ -148,6 +148,39 @@ async def cancel_research_task(task_id: str):
     return {"success": True, "task_id": task_id, "message": "Research task cancelled."}
 
 
+@router.post("/{task_id}/audio")
+async def generate_audio_briefing_endpoint(task_id: str):
+    """Generate and stream ElevenLabs AI voice audio briefing for a research report."""
+    task = storage.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    final_report = task.get("final_report")
+    if not final_report or not final_report.get("full_markdown"):
+        raise HTTPException(status_code=400, detail="Research report not yet generated for this task.")
+
+    from backend.app.services.elevenlabs_service import generate_audio_briefing
+
+    try:
+        audio_path = await generate_audio_briefing(
+            task_id=task_id,
+            markdown_content=final_report.get("full_markdown", ""),
+        )
+        with open(audio_path, "rb") as f:
+            audio_bytes = f.read()
+
+        return Response(
+            content=audio_bytes,
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": f'inline; filename="{task_id}_briefing.mp3"'},
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate ElevenLabs audio briefing: {str(e)}")
+
+
+
 @router.delete("/history/clear", response_model=Dict[str, Any])
 async def clear_all_history():
     """Clear all historical research sessions."""

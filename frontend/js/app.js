@@ -13,11 +13,14 @@ class DeepResearchApp {
     this.activeLogFilter = 'all';
     this.autoScrollEnabled = true;
     this.systemConfig = null;
+    this.recognition = null;
+    this.isListening = false;
 
     this.initElements();
     this.bindEvents();
     this.loadConfig();
     this.loadHistoryCount();
+    this.initSpeechToText();
   }
 
   initElements() {
@@ -251,6 +254,69 @@ class DeepResearchApp {
     }
     const enhanced = `${val}\n\nKey Requirements:\n1. Detailed architectural breakdown and state management trade-offs\n2. Real-time benchmarks, latency, and token cost considerations\n3. Practical production deployment patterns and 2026 outlook\n4. Verified source citations with comparative markdown summary tables`;
     this.setSamplePrompt(enhanced);
+  }
+
+  initSpeechToText() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    this.recognition = new SpeechRecognition();
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US';
+
+    this.recognition.onstart = () => {
+      this.isListening = true;
+      const btn = document.getElementById('sttVoiceBtn');
+      const lbl = document.getElementById('sttVoiceLabel');
+      if (btn) btn.classList.add('bg-red-950/60', 'border-red-800', 'text-red-300');
+      if (lbl) lbl.classList.remove('hidden');
+    };
+
+    this.recognition.onend = () => {
+      this.isListening = false;
+      const btn = document.getElementById('sttVoiceBtn');
+      const lbl = document.getElementById('sttVoiceLabel');
+      if (btn) btn.classList.remove('bg-red-950/60', 'border-red-800', 'text-red-300');
+      if (lbl) lbl.classList.add('hidden');
+    };
+
+    this.recognition.onresult = (event) => {
+      let transcript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
+      }
+      if (this.researchQuery && transcript) {
+        this.researchQuery.value = transcript;
+        this.updateQueryCounters();
+      }
+    };
+
+    this.recognition.onerror = (err) => {
+      console.warn('Speech recognition notice:', err.error);
+      this.isListening = false;
+    };
+  }
+
+  toggleSpeechToText() {
+    if (!this.recognition) {
+      this.initSpeechToText();
+    }
+
+    if (!this.recognition) {
+      alert('Speech Recognition is not supported by your current browser. Try Google Chrome, Microsoft Edge, or Apple Safari.');
+      return;
+    }
+
+    if (this.isListening) {
+      this.recognition.stop();
+    } else {
+      try {
+        this.recognition.start();
+      } catch (e) {
+        this.recognition.stop();
+      }
+    }
   }
 
   toggleTheme() {
@@ -873,6 +939,38 @@ class DeepResearchApp {
     }
 
     if (window.lucide) window.lucide.createIcons();
+  }
+
+  async generateAudioBriefing() {
+    if (!this.currentTaskId) return;
+
+    const btn = document.getElementById('audioBriefBtn');
+    const textSpan = document.getElementById('audioBriefBtnText');
+    const container = document.getElementById('audioBriefingContainer');
+    const player = document.getElementById('audioBriefingPlayer');
+
+    try {
+      if (btn) btn.disabled = true;
+      if (textSpan) textSpan.textContent = 'Synthesizing...';
+
+      const audioBlob = await API.generateAudioBriefing(this.currentTaskId);
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      if (player) {
+        player.src = audioUrl;
+        player.play().catch(() => {});
+      }
+      if (container) {
+        container.classList.remove('hidden');
+      }
+
+      if (textSpan) textSpan.textContent = 'Audio Ready ✓';
+    } catch (err) {
+      alert(`Audio Briefing Error: ${err.message}`);
+      if (textSpan) textSpan.textContent = 'Audio Brief';
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   returnToExecutionTrace() {

@@ -74,6 +74,17 @@ const API = {
     return await resp.json();
   },
 
+  async generateAudioBriefing(taskId) {
+    const resp = await fetch(`${this.baseUrl}/api/research/${taskId}/audio`, {
+      method: 'POST',
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: 'Failed to generate audio briefing' }));
+      throw new Error(err.detail || 'Failed to generate audio briefing');
+    }
+    return await resp.blob();
+  },
+
   async getConfig() {
     const resp = await fetch(`${this.baseUrl}/api/config`);
     if (!resp.ok) {

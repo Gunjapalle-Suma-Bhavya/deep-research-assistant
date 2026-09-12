@@ -129,8 +129,18 @@
                   class="w-full px-3.5 py-3 pr-20 rounded-lg border border-zinc-700/80 bg-zinc-950 text-zinc-100 placeholder-zinc-500 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition resize-none outline-none text-sm leading-relaxed"
                 ></textarea>
 
-                <!-- Input Action Buttons (Clear & Enhance) -->
+                <!-- Input Action Buttons (Dictate, Enhance & Clear) -->
                 <div class="absolute right-2 top-2 flex items-center space-x-1">
+                  <button
+                    type="button"
+                    id="sttVoiceBtn"
+                    onclick="app.toggleSpeechToText()"
+                    class="p-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 text-xs transition cursor-pointer flex items-center space-x-1"
+                    title="Speak to Dictate Prompt (Speech-to-Text)"
+                  >
+                    <i data-lucide="mic" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span id="sttVoiceLabel" class="hidden text-[10px] text-red-400 font-mono">Listening...</span>
+                  </button>
                   <button
                     type="button"
                     id="enhancePromptBtn"
@@ -606,6 +616,9 @@
 
           <!-- Action Buttons Bar -->
           <div class="flex flex-wrap items-center gap-1.5">
+            <button id="audioBriefBtn" onclick="app.generateAudioBriefing()" class="action-btn text-blue-400 border-blue-500/30 hover:bg-blue-950/40" title="Synthesize AI Voice Audio Briefing with ElevenLabs">
+              <span id="audioBriefBtnText">Audio Brief</span>
+            </button>
             <button id="copyReportBtn" onclick="app.copyReportToClipboard()" class="action-btn" title="Copy report to clipboard">
               <span>Copy</span>
             </button>
@@ -628,6 +641,20 @@
               <span>Trace</span>
             </button>
           </div>
+        </div>
+
+        <!-- ElevenLabs Audio Player Widget (Hidden until synthesized) -->
+        <div id="audioBriefingContainer" class="hidden bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+          <div class="flex items-center space-x-3 w-full sm:w-auto">
+            <div class="w-9 h-9 rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shrink-0">
+              <i data-lucide="volume-2" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-zinc-100">ElevenLabs AI Voice Audio Briefing</h4>
+              <p class="text-[11px] text-zinc-400">Audio summary synthesized with natural AI voice</p>
+            </div>
+          </div>
+          <audio id="audioBriefingPlayer" controls class="w-full sm:w-80 h-9 rounded-lg outline-none"></audio>
         </div>
 
         <!-- Rendered Report Content -->
