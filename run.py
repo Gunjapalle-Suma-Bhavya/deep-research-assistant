@@ -132,7 +132,8 @@ def main():
     requested_port = int(os.getenv("PORT", "8000"))
     
     port = find_available_port(host, requested_port)
-    url = f"http://{host}:{port}"
+    browser_host = "127.0.0.1" if host in ("0.0.0.0", "::") else host
+    url = f"http://{browser_host}:{port}"
 
     api_key_set = bool(os.getenv("OPENAI_API_KEY"))
     base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
