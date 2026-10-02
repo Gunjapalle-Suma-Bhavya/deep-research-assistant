@@ -118,6 +118,7 @@ class WorkerState(BaseModel):
     topic: str
     search_queries: List[str] = Field(default_factory=list)
     depth: str = "in-depth"
+    research_mode: str = "general"
     notes: List[ResearchNote] = Field(default_factory=list)
     raw_results: List[Dict[str, Any]] = Field(default_factory=list)
     iteration_count: int = 0

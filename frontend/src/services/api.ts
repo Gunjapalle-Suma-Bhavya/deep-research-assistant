@@ -6,8 +6,10 @@ import {
   SystemConfig,
   ConnectionTestResult,
   ResearchTaskDetail,
+  SharedMonographResponse,
   ResearchTaskSummary,
   ResearchDepth,
+  ResearchMode,
 } from '../types';
 
 const API_BASE = '/api';
@@ -107,6 +109,7 @@ export const api = {
   startResearch: (payload: {
     query: string;
     depth: ResearchDepth;
+    mode?: ResearchMode;
     custom_instructions?: string;
   }) => request<{ success: boolean; task_id: string; status: string; message: string }>('/research/start', {
     method: 'POST',
@@ -147,8 +150,17 @@ export const api = {
   },
 
   // Export URLs
-  getExportUrl: (taskId: string, format: 'md' | 'html' | 'json') =>
+  getExportUrl: (taskId: string, format: 'md' | 'html' | 'json' | 'docx' | 'bib') =>
     `${API_BASE}/research/${taskId}/export/${format}`,
+
+  // Public Sharing
+  createShareLink: (taskId: string) =>
+    request<{ success: boolean; task_id: string; share_token: string; is_shared: boolean }>(`/research/${taskId}/share`, {
+      method: 'POST',
+    }),
+
+  getSharedMonograph: (shareToken: string) =>
+    request<SharedMonographResponse>(`/research/shared/${shareToken}`),
 
   // History
   getHistory: () => request<ResearchTaskSummary[]>('/research/history'),

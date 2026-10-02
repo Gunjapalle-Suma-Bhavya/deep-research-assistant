@@ -18,6 +18,7 @@ import { ReportViewer } from './components/ReportViewer';
 import { CitationInspector } from './components/CitationInspector';
 import { SettingsModal } from './components/SettingsModal';
 import { HistoryDrawer } from './components/HistoryDrawer';
+import { SharedMonographView } from './components/SharedMonographView';
 
 import { api } from './services/api';
 import { ResearchStreamClient } from './services/sseClient';
@@ -26,6 +27,7 @@ import {
   ResearchTaskDetail,
   ResearchTaskSummary,
   ResearchDepth,
+  ResearchMode,
   TaskStatus,
   User,
 } from './types';
@@ -103,7 +105,8 @@ export const AppContent: React.FC = () => {
   const handleStartResearch = async (
     query: string,
     depth: ResearchDepth,
-    customInstructions: string
+    customInstructions: string,
+    mode: ResearchMode = 'general'
   ) => {
     setIsLoading(true);
     try {
@@ -111,6 +114,7 @@ export const AppContent: React.FC = () => {
         query,
         depth,
         custom_instructions: customInstructions || undefined,
+        mode,
       });
 
       const taskId = res.task_id;
@@ -120,6 +124,7 @@ export const AppContent: React.FC = () => {
         task_id: taskId,
         query,
         depth,
+        mode,
         status: 'scoping',
         progress_percentage: 5,
         current_step_description: 'Initializing multi-agent graph and scoping topic...',
@@ -130,7 +135,7 @@ export const AppContent: React.FC = () => {
             timestamp: new Date().toISOString(),
             agent: 'system',
             level: 'info',
-            message: `Research inquiry initialized: "${query}" (Scope: ${depth})`,
+            message: `Research inquiry initialized: "${query}" (Scope: ${depth}, Mode: ${mode})`,
           },
         ],
         created_at: new Date().toISOString(),
@@ -363,18 +368,22 @@ export const AppContent: React.FC = () => {
     setIsSourcesOpen(true);
   };
 
+  const isShareRoute = location.pathname.startsWith('/share/');
+
   return (
     <div className="min-h-full flex flex-col bg-cream text-ink font-body">
-      {/* Top Masthead */}
-      <Navbar
-        config={config}
-        historyCount={historyList.length}
-        user={user}
-        onSignOut={handleSignOut}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onOpenHistory={() => setIsHistoryOpen(true)}
-        onReset={handleReset}
-      />
+      {/* Top Masthead (hidden on public shared monograph view) */}
+      {!isShareRoute && (
+        <Navbar
+          config={config}
+          historyCount={historyList.length}
+          user={user}
+          onSignOut={handleSignOut}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenHistory={() => setIsHistoryOpen(true)}
+          onReset={handleReset}
+        />
+      )}
 
       {/* Primary Routes */}
       <Routes>
@@ -445,6 +454,9 @@ export const AppContent: React.FC = () => {
           }
         />
 
+        {/* Public Shared Monograph Reader */}
+        <Route path="/share/:shareToken" element={<SharedMonographView />} />
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -467,12 +479,14 @@ export const AppContent: React.FC = () => {
       />
 
       {/* Settings Modal */}
-      <SettingsModal
-        config={config}
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onConfigSaved={(newCfg) => setConfig(newCfg)}
-      />
+      {taskDetail?.final_report ? null : (
+        <SettingsModal
+          config={config}
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          onConfigSaved={(newCfg) => setConfig(newCfg)}
+        />
+      )}
 
       {/* History Drawer */}
       <HistoryDrawer
@@ -492,7 +506,12 @@ interface ResearchWorkspaceProps {
   activeTaskId: string | null;
   taskDetail: ResearchTaskDetail | null;
   isLoading: boolean;
-  onStartResearch: (query: string, depth: ResearchDepth, customInstructions: string) => void;
+  onStartResearch: (
+    query: string,
+    depth: ResearchDepth,
+    customInstructions: string,
+    mode?: ResearchMode
+  ) => void;
   onReset: () => void;
   onCancelResearch: () => void;
   onOpenSourcesDrawer: () => void;

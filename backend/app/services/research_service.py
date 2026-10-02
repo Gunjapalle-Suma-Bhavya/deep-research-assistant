@@ -109,6 +109,7 @@ class ResearchService:
         self,
         query: str,
         depth: str = "comprehensive",
+        mode: str = "general",
         custom_instructions: Optional[str] = None,
         user_id: Optional[str] = None,
     ) -> str:
@@ -121,6 +122,7 @@ class ResearchService:
             "user_id": user_id,
             "query": query,
             "depth": depth,
+            "mode": mode,
             "custom_instructions": custom_instructions,
             "status": "scoping",
             "progress_percentage": 10,
@@ -138,7 +140,7 @@ class ResearchService:
         storage.save_task(initial_task)
 
         # Launch background execution
-        task_coro = asyncio.create_task(self._run_scoping_phase(task_id, query, depth, custom_instructions))
+        task_coro = asyncio.create_task(self._run_scoping_phase(task_id, query, depth, mode, custom_instructions))
         self._running_tasks[task_id] = task_coro
         return task_id
 
@@ -148,6 +150,7 @@ class ResearchService:
         task_id: str,
         query: str,
         depth: str,
+        mode: str,
         custom_instructions: Optional[str],
     ):
         """Execute Phase 1: Clarification and Brief Generation."""
@@ -208,7 +211,7 @@ class ResearchService:
             )
 
             # Proceed immediately to Phase 2: Multi-Agent Research
-            await self._run_research_and_writing_phase(task_id, brief)
+            await self._run_research_and_writing_phase(task_id, brief, mode=mode)
 
         except Exception as e:
             print(f"[ResearchService] Error in scoping phase: {e}")
@@ -271,7 +274,8 @@ class ResearchService:
                     },
                 )
 
-                await self._run_research_and_writing_phase(task_id, brief)
+                task_mode = task.get("mode", "general")
+                await self._run_research_and_writing_phase(task_id, brief, mode=task_mode)
             except Exception as e:
                 print(f"[ResearchService] Error resuming research: {e}")
                 task["status"] = "failed"
@@ -284,7 +288,7 @@ class ResearchService:
         asyncio.create_task(_resume())
         return True
 
-    async def _run_research_and_writing_phase(self, task_id: str, brief: ResearchQuestion):
+    async def _run_research_and_writing_phase(self, task_id: str, brief: ResearchQuestion, mode: str = "general"):
         """Execute Phase 2 (Supervisor + Parallel Subagents) and Phase 3 (Writer)."""
         try:
             # 1. Supervisor Planning
@@ -333,6 +337,7 @@ class ResearchService:
                     topic=topic,
                     queries=queries,
                     depth=t.get("depth", "in-depth"),
+                    mode=mode,
                 )
 
                 await self.broadcast_event(

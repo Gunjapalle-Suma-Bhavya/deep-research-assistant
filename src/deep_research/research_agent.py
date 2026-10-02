@@ -40,7 +40,7 @@ async def researcher_node(state: WorkerState) -> Dict[str, Any]:
         # First iteration: run bootstrap queries
         all_results = []
         for q in state.search_queries[:2]:
-            results = await search_web(q, max_results=4)
+            results = await search_web(q, max_results=4, mode=state.research_mode)
             for r in results:
                 all_results.append({
                     "title": r.title,
@@ -141,13 +141,19 @@ def build_researcher_graph():
     return workflow.compile()
 
 
-async def run_single_research_topic(topic: str, queries: List[str], depth: str = "in-depth") -> ResearchNote:
+async def run_single_research_topic(
+    topic: str,
+    queries: List[str],
+    depth: str = "in-depth",
+    mode: str = "general",
+) -> ResearchNote:
     """Execute research on a single topic and return structured note."""
     graph = build_researcher_graph()
     initial_state = WorkerState(
         topic=topic,
         search_queries=queries or [topic],
         depth=depth,
+        research_mode=mode,
     )
     result = await graph.ainvoke(initial_state)
     notes = result.get("notes", [])

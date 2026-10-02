@@ -39,6 +39,7 @@ async def start_research_endpoint(
     task_id = await research_service.start_research(
         query=payload.query.strip(),
         depth=payload.depth,
+        mode=payload.mode,
         custom_instructions=payload.custom_instructions,
         user_id=user_id,
     )
@@ -126,9 +127,15 @@ async def list_research_history(authorization: Optional[str] = Header(None)):
     return summaries
 
 
+from backend.app.services.export_service import (
+    generate_html_document,
+    generate_docx_document,
+    generate_bibtex,
+)
+
 @router.get("/{task_id}/export/{format_type}")
 async def export_research_report(task_id: str, format_type: str):
-    """Export the final report in Markdown, HTML, or raw JSON format."""
+    """Export the final report in Markdown, HTML, DOCX, BibTeX, or raw JSON format."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
@@ -140,29 +147,93 @@ async def export_research_report(task_id: str, format_type: str):
     title = final_report.get("title", "Research_Report")
     clean_filename = "".join(c for c in title if c.isalnum() or c in (" ", "_", "-")).rstrip().replace(" ", "_")
     markdown_content = final_report.get("full_markdown", "")
+    sources = task.get("sources", [])
 
-    if format_type.lower() == "md" or format_type.lower() == "markdown":
+    fmt = format_type.lower()
+    if fmt in ("md", "markdown"):
         return Response(
             content=markdown_content,
-            media_type="text/markdown",
+            media_type="text/markdown; charset=utf-8",
             headers={"Content-Disposition": f'attachment; filename="{clean_filename}.md"'},
         )
-    elif format_type.lower() == "html":
+    elif fmt == "html":
         html_doc = generate_html_document(title, markdown_content, metadata=task)
         return Response(
             content=html_doc,
-            media_type="text/html",
+            media_type="text/html; charset=utf-8",
             headers={"Content-Disposition": f'attachment; filename="{clean_filename}.html"'},
         )
-    elif format_type.lower() == "json":
+    elif fmt in ("docx", "word"):
+        docx_bytes = generate_docx_document(title, markdown_content, sources)
+        return Response(
+            content=docx_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f'attachment; filename="{clean_filename}.docx"'},
+        )
+    elif fmt in ("bib", "bibtex"):
+        bibtex_content = generate_bibtex(title, sources)
+        return Response(
+            content=bibtex_content,
+            media_type="application/x-bibtex; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{clean_filename}.bib"'},
+        )
+    elif fmt == "json":
         import json
         return Response(
             content=json.dumps(task, indent=2, ensure_ascii=False),
-            media_type="application/json",
+            media_type="application/json; charset=utf-8",
             headers={"Content-Disposition": f'attachment; filename="{clean_filename}.json"'},
         )
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported export format '{format_type}'. Use 'md', 'html', or 'json'.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported export format '{format_type}'. Use 'md', 'html', 'docx', 'bib', or 'json'.",
+        )
+
+
+@router.post("/{task_id}/share")
+async def create_or_toggle_share_link(task_id: str):
+    """Generate or retrieve a public read-only share token for a research monograph."""
+    task = storage.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    import uuid
+    if not task.get("share_token"):
+        task["share_token"] = f"pub_{uuid.uuid4().hex[:12]}"
+        task["is_shared"] = True
+        storage.save_task(task)
+
+    return {
+        "success": True,
+        "task_id": task_id,
+        "share_token": task["share_token"],
+        "is_shared": task.get("is_shared", True),
+    }
+
+
+@router.get("/shared/{share_token}")
+async def get_shared_monograph(share_token: str):
+    """Retrieve public read-only monograph data by share token without requiring auth."""
+    # Find task matching share_token
+    tasks = storage.list_tasks()
+    matched = next((t for t in tasks if t.get("share_token") == share_token and t.get("is_shared")), None)
+    if not matched:
+        raise HTTPException(status_code=404, detail="Shared monograph not found or access has been revoked.")
+
+    # Return safe public subset
+    return {
+        "task_id": matched.get("task_id"),
+        "query": matched.get("query"),
+        "title": matched.get("final_report", {}).get("title") or matched.get("query"),
+        "status": matched.get("status"),
+        "created_at": matched.get("created_at"),
+        "sources": matched.get("sources", []),
+        "final_report": matched.get("final_report"),
+        "research_brief": matched.get("research_brief"),
+        "mode": matched.get("mode", "general"),
+        "share_token": share_token,
+    }
 
 
 @router.post("/{task_id}/cancel", response_model=Dict[str, Any])

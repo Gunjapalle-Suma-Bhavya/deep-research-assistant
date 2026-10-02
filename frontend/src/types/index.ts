@@ -3,6 +3,7 @@
  */
 
 export type ResearchDepth = 'quick' | 'standard' | 'comprehensive';
+export type ResearchMode = 'general' | 'academic' | 'financial';
 
 export type TaskStatus = 
   | 'idle'
@@ -74,6 +75,9 @@ export interface ResearchTaskDetail {
   task_id: string;
   query: string;
   depth: ResearchDepth;
+  mode?: ResearchMode;
+  share_token?: string;
+  is_shared?: boolean;
   status: TaskStatus;
   progress_percentage: number;
   current_step_description: string;
@@ -86,6 +90,20 @@ export interface ResearchTaskDetail {
   error?: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface SharedMonographResponse {
+  task_id: string;
+  query: string;
+  title?: string;
+  status?: string;
+  created_at?: string;
+  sources: CitationSource[];
+  final_report?: FinalReport;
+  research_brief?: ResearchBrief;
+  mode?: ResearchMode;
+  depth?: ResearchDepth;
+  share_token: string;
 }
 
 export interface ResearchTaskSummary {

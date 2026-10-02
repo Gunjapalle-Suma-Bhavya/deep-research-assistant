@@ -1,9 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Sparkles, SlidersHorizontal, ArrowRight, Zap, BookOpen, Layers, X, Feather } from 'lucide-react';
-import { ResearchDepth } from '../types';
+import {
+  Mic,
+  MicOff,
+  Sparkles,
+  SlidersHorizontal,
+  ArrowRight,
+  Zap,
+  BookOpen,
+  Layers,
+  X,
+  Feather,
+  GraduationCap,
+  TrendingUp,
+  Compass,
+} from 'lucide-react';
+import { ResearchDepth, ResearchMode } from '../types';
 
 interface ResearchInputViewProps {
-  onStartResearch: (query: string, depth: ResearchDepth, customInstructions: string) => void;
+  onStartResearch: (
+    query: string,
+    depth: ResearchDepth,
+    customInstructions: string,
+    mode: ResearchMode
+  ) => void;
   isLoading: boolean;
 }
 
@@ -20,6 +39,7 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [depth, setDepth] = useState<ResearchDepth>('standard');
+  const [mode, setMode] = useState<ResearchMode>('general');
   const [customInstructions, setCustomInstructions] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -77,7 +97,7 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
       recognitionRef.current.stop();
       setIsListening(false);
     }
-    onStartResearch(query.trim(), depth, customInstructions.trim());
+    onStartResearch(query.trim(), depth, customInstructions.trim(), mode);
   };
 
   const handleEnhance = () => {
@@ -167,8 +187,70 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
           </span>
         </div>
 
-        {/* Depth Presets */}
+        {/* Investigation Domain / Source Mode */}
         <div className="mt-6 pt-5 border-t border-edge">
+          <label className="block text-xs font-semibold text-muted mb-3 uppercase tracking-wider font-mono">
+            Investigation Domain & Source Index
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <button
+              type="button"
+              onClick={() => setMode('general')}
+              className={`flex items-start p-3 rounded-[2px] border text-left transition ${
+                mode === 'general'
+                  ? 'bg-cream border-forest text-ink ring-1 ring-forest'
+                  : 'bg-panel border-edge text-muted hover:border-muted/50 hover:bg-cream'
+              }`}
+            >
+              <Compass className="w-4 h-4 mr-2.5 mt-0.5 text-forest shrink-0" />
+              <div>
+                <div className="text-sm font-serif font-bold text-ink">General Empirical</div>
+                <div className="text-[11px] text-muted font-mono mt-0.5">Broad web exploration across live authoritative sources</div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode('academic')}
+              className={`flex items-start p-3 rounded-[2px] border text-left transition ${
+                mode === 'academic'
+                  ? 'bg-cream border-forest text-ink ring-1 ring-forest'
+                  : 'bg-panel border-edge text-muted hover:border-muted/50 hover:bg-cream'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4 mr-2.5 mt-0.5 text-forest shrink-0" />
+              <div>
+                <div className="text-sm font-serif font-bold text-ink flex items-center gap-1.5">
+                  Academic Focus
+                  <span className="text-[9px] bg-panel text-forest px-1 border border-edge rounded-[2px] font-mono">.edu / ArXiv</span>
+                </div>
+                <div className="text-[11px] text-muted font-mono mt-0.5">ArXiv, Nature, ScienceDirect, PubMed & University domains</div>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMode('financial')}
+              className={`flex items-start p-3 rounded-[2px] border text-left transition ${
+                mode === 'financial'
+                  ? 'bg-cream border-forest text-ink ring-1 ring-forest'
+                  : 'bg-panel border-edge text-muted hover:border-muted/50 hover:bg-cream'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 mr-2.5 mt-0.5 text-forest shrink-0" />
+              <div>
+                <div className="text-sm font-serif font-bold text-ink flex items-center gap-1.5">
+                  Financial & Market
+                  <span className="text-[9px] bg-panel text-forest px-1 border border-edge rounded-[2px] font-mono">SEC / News</span>
+                </div>
+                <div className="text-[11px] text-muted font-mono mt-0.5">SEC filings, Bloomberg, Reuters, FT & market disclosures</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Depth Presets */}
+        <div className="mt-5 pt-4 border-t border-edge">
           <label className="block text-xs font-semibold text-muted mb-3 uppercase tracking-wider font-mono">
             Investigation Scope & Breadth
           </label>

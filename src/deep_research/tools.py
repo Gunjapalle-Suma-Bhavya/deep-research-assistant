@@ -24,21 +24,61 @@ except ImportError:
     HAS_DDG = False
 
 
-async def tavily_search(query: str, max_results: int = 5) -> List[SearchResult]:
-    """Execute search query using Tavily API."""
+ACADEMIC_DOMAINS = [
+    "arxiv.org",
+    "biorxiv.org",
+    "nature.com",
+    "science.org",
+    "sciencedirect.com",
+    "springer.com",
+    "ieee.org",
+    "ncbi.nlm.nih.gov",
+    "nih.gov",
+    "edu",
+    "ac.uk",
+]
+
+FINANCIAL_DOMAINS = [
+    "sec.gov",
+    "bloomberg.com",
+    "reuters.com",
+    "ft.com",
+    "wsj.com",
+    "finance.yahoo.com",
+    "cnbc.com",
+    "marketwatch.com",
+    "forbes.com",
+]
+
+
+async def tavily_search(
+    query: str,
+    max_results: int = 5,
+    mode: str = "general",
+) -> List[SearchResult]:
+    """Execute search query using Tavily API with optional domain constraints."""
     api_key = os.getenv("TAVILY_API_KEY", "").strip()
     if not api_key:
         return []
     
+    include_domains = None
+    if mode == "academic":
+        include_domains = ACADEMIC_DOMAINS
+    elif mode == "financial":
+        include_domains = FINANCIAL_DOMAINS
+
     try:
         client = TavilyClient(api_key=api_key)
-        # Tavily python SDK search
-        response = client.search(
-            query=query,
-            max_results=max_results,
-            search_depth="advanced",
-            include_raw_content=False,
-        )
+        kwargs: Dict[str, Any] = {
+            "query": query,
+            "max_results": max_results,
+            "search_depth": "advanced",
+            "include_raw_content": False,
+        }
+        if include_domains:
+            kwargs["include_domains"] = include_domains
+
+        response = client.search(**kwargs)
         
         results = []
         for item in response.get("results", []):
@@ -56,15 +96,24 @@ async def tavily_search(query: str, max_results: int = 5) -> List[SearchResult]:
         return []
 
 
-def duckduckgo_search_sync(query: str, max_results: int = 5) -> List[SearchResult]:
-    """Execute search query using DuckDuckGo (sync)."""
+def duckduckgo_search_sync(
+    query: str,
+    max_results: int = 5,
+    mode: str = "general",
+) -> List[SearchResult]:
+    """Execute search query using DuckDuckGo (sync) with domain hints."""
     if not HAS_DDG:
-        # Fallback to simple HTML search scraping if library missing
         return []
     
+    modified_query = query
+    if mode == "academic":
+        modified_query = f"{query} site:edu OR site:org OR site:arxiv.org"
+    elif mode == "financial":
+        modified_query = f"{query} site:sec.gov OR site:bloomberg.com OR site:reuters.com"
+
     try:
         ddgs = DDGS()
-        raw_results = list(ddgs.text(query, max_results=max_results))
+        raw_results = list(ddgs.text(modified_query, max_results=max_results))
         results = []
         for item in raw_results:
             results.append(
@@ -81,16 +130,20 @@ def duckduckgo_search_sync(query: str, max_results: int = 5) -> List[SearchResul
         return []
 
 
-async def search_web(query: str, max_results: int = 5) -> List[SearchResult]:
-    """Search the web with Tavily if API key is present, otherwise fallback to DuckDuckGo."""
+async def search_web(
+    query: str,
+    max_results: int = 5,
+    mode: str = "general",
+) -> List[SearchResult]:
+    """Search the web with Tavily if API key is present, otherwise fallback to DuckDuckGo, adhering to research mode."""
     tavily_key = os.getenv("TAVILY_API_KEY", "").strip()
     if tavily_key and HAS_TAVILY:
-        results = await tavily_search(query, max_results=max_results)
+        results = await tavily_search(query, max_results=max_results, mode=mode)
         if results:
             return results
     
     # Fallback to DuckDuckGo in thread pool
-    return await asyncio.to_thread(duckduckgo_search_sync, query, max_results)
+    return await asyncio.to_thread(duckduckgo_search_sync, query, max_results, mode)
 
 
 async def fetch_page_content(url: str, timeout: int = 8) -> str:

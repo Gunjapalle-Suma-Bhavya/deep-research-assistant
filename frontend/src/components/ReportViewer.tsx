@@ -6,6 +6,9 @@ import {
   Volume2,
   Pause,
   BookOpen,
+  Share2,
+  Link as LinkIcon,
+  X,
 } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -34,6 +37,36 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [audioProgress, setAudioProgress] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Public Share Modal State
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isGeneratingShare, setIsGeneratingShare] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+
+  const handleShareClick = async () => {
+    setShowShareModal(true);
+    if (!shareUrl) {
+      try {
+        setIsGeneratingShare(true);
+        const res = await api.createShareLink(taskId);
+        const url = `${window.location.origin}/share/${res.share_token}`;
+        setShareUrl(url);
+      } catch (err: any) {
+        console.error('Failed to create share link:', err);
+      } finally {
+        setIsGeneratingShare(false);
+      }
+    }
+  };
+
+  const handleCopyShareLink = () => {
+    if (shareUrl) {
+      navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    }
+  };
 
   const getRenderedContent = () => {
     let md = report.full_markdown || '';
@@ -205,12 +238,38 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <span className="hidden sm:inline">PDF</span>
             </button>
 
+            <button
+              onClick={handleShareClick}
+              disabled={isGeneratingShare}
+              className="px-3 py-1.5 rounded-[2px] bg-forest hover:bg-forest/90 text-cream border border-forest font-serif font-bold transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
+              title="Generate public share link"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>Share</span>
+            </button>
+
             <div className="flex items-center space-x-1 border-l border-edge pl-2">
+              <a
+                href={api.getExportUrl(taskId, 'docx')}
+                download
+                className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle font-semibold text-forest"
+                title="Download formatted Word document (.docx)"
+              >
+                .DOCX
+              </a>
+              <a
+                href={api.getExportUrl(taskId, 'bib')}
+                download
+                className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle font-semibold"
+                title="Download academic BibTeX library (.bib)"
+              >
+                .BIB
+              </a>
               <a
                 href={api.getExportUrl(taskId, 'md')}
                 download
                 className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
-                title="Download .md file"
+                title="Download markdown file"
               >
                 .MD
               </a>
@@ -218,7 +277,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                 href={api.getExportUrl(taskId, 'html')}
                 download
                 className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
-                title="Download .html file"
+                title="Download editorial HTML file"
               >
                 .HTML
               </a>
@@ -261,6 +320,80 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         dangerouslySetInnerHTML={{ __html: getRenderedContent() }}
         className="prose-report bg-cream border border-edge rounded-[2px] p-8 sm:p-14 shadow-paper text-ink"
       />
+
+      {/* Public Share Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 bg-ink/50 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-panel border border-edge rounded-[2px] max-w-md w-full p-6 shadow-paper">
+            <div className="flex items-center justify-between pb-3 border-b border-edge mb-4">
+              <div className="flex items-center space-x-2">
+                <LinkIcon className="w-4 h-4 text-forest" />
+                <h3 className="font-serif font-bold text-lg text-ink">Share Monograph</h3>
+              </div>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="p-1 rounded-[2px] text-muted hover:text-ink hover:bg-cream border border-edge transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-sm font-serif text-muted mb-4 leading-relaxed">
+              Anyone with this public link can inspect this monograph, explore verified citations, and download formatted exports without requiring an account.
+            </p>
+
+            {isGeneratingShare ? (
+              <div className="py-6 flex flex-col items-center justify-center space-y-2">
+                <span className="w-5 h-5 border-2 border-forest border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs font-mono text-muted">Generating public share token...</span>
+              </div>
+            ) : shareUrl ? (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={shareUrl}
+                    className="flex-1 px-3 py-2 text-xs font-mono bg-cream border border-edge rounded-[2px] text-ink select-all focus:outline-none focus:border-forest"
+                  />
+                  <button
+                    onClick={handleCopyShareLink}
+                    className="px-3 py-2 rounded-[2px] bg-forest hover:bg-forest/90 text-cream border border-forest text-xs font-serif font-bold flex items-center space-x-1 cursor-pointer transition shadow-subtle shrink-0"
+                  >
+                    {shareCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Link</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="text-[11px] font-mono text-muted bg-cream p-2.5 rounded-[2px] border border-edge">
+                  Status: <span className="text-forest font-semibold">Active & Live</span> • Read-only access enabled
+                </div>
+              </div>
+            ) : (
+              <div className="text-xs text-rose-700 bg-rose-50 p-3 rounded-[2px] border border-rose-200">
+                Failed to generate public share token. Please ensure the backend is running.
+              </div>
+            )}
+
+            <div className="mt-5 pt-3 border-t border-edge flex justify-end">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-4 py-1.5 rounded-[2px] bg-cream hover:bg-panel border border-edge text-xs font-serif font-bold text-ink cursor-pointer transition shadow-subtle"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

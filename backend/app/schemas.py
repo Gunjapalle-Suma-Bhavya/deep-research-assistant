@@ -13,6 +13,10 @@ class ResearchStartRequest(BaseModel):
         default="comprehensive",
         description="Research depth level: 'overview', 'in-depth', or 'comprehensive'.",
     )
+    mode: str = Field(
+        default="general",
+        description="Investigation domain mode: 'general', 'academic', or 'financial'.",
+    )
     custom_instructions: Optional[str] = Field(
         default=None, description="Optional user preferences, specific guidelines, or constraints."
     )
