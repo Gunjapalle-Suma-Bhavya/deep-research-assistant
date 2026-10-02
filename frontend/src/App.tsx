@@ -20,10 +20,7 @@ import {
 } from './types';
 
 export const App: React.FC = () => {
-  // Theme state
-  const [isDark, setIsDark] = useState(true);
-
-  // System Configuration
+  const [isDark, setIsDark] = useState(false);
   const [config, setConfig] = useState<SystemConfig | null>(null);
 
   // Research State
@@ -39,7 +36,6 @@ export const App: React.FC = () => {
   const [selectedCitationIndex, setSelectedCitationIndex] = useState<number | null>(null);
   const [historyList, setHistoryList] = useState<ResearchTaskSummary[]>([]);
 
-  // Initialize System on mount
   useEffect(() => {
     loadConfig();
     loadHistory();
@@ -65,11 +61,6 @@ export const App: React.FC = () => {
 
   const handleToggleTheme = () => {
     setIsDark(!isDark);
-    if (!isDark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
   };
 
   // Start new research workflow
@@ -89,7 +80,6 @@ export const App: React.FC = () => {
       const taskId = res.task_id;
       setActiveTaskId(taskId);
 
-      // Set initial local state
       setTaskDetail({
         task_id: taskId,
         query,
@@ -104,14 +94,13 @@ export const App: React.FC = () => {
             timestamp: new Date().toISOString(),
             agent: 'system',
             level: 'info',
-            message: `Research initialized: "${query}" (Depth: ${depth})`,
+            message: `Research inquiry initialized: "${query}" (Scope: ${depth})`,
           },
         ],
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       });
 
-      // Connect SSE Stream
       connectStream(taskId);
       loadHistory();
     } catch (err: any) {
@@ -121,7 +110,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // Connect Server-Sent Events stream
   const connectStream = (taskId: string) => {
     if (streamClient) {
       streamClient.close();
@@ -243,7 +231,6 @@ export const App: React.FC = () => {
     setStreamClient(client);
   };
 
-  // Submit clarification answers
   const handleClarificationSubmit = async (
     responses: Record<string, string>,
     additionalNotes: string
@@ -273,7 +260,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // Cancel research
   const handleCancelResearch = async () => {
     if (!activeTaskId) return;
     try {
@@ -286,7 +272,6 @@ export const App: React.FC = () => {
     }
   };
 
-  // Load existing task from history
   const handleSelectHistoryTask = async (taskId: string) => {
     try {
       setIsHistoryOpen(false);
@@ -340,8 +325,8 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-full flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
-      {/* Top Navbar */}
+    <div className="min-h-full flex flex-col bg-cream text-ink font-body">
+      {/* Top Masthead */}
       <Navbar
         config={config}
         historyCount={historyList.length}
@@ -352,27 +337,27 @@ export const App: React.FC = () => {
         onReset={handleReset}
       />
 
-      {/* Main Content View Switcher */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!activeTaskId || !taskDetail ? (
           <ResearchInputView onStartResearch={handleStartResearch} isLoading={isLoading} />
         ) : (
           <div className="space-y-6 animate-fadeIn">
             {/* Header Info */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-edge gap-2">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
-                  Task ID: {activeTaskId}
+                <span className="text-[11px] font-mono uppercase tracking-wider text-muted">
+                  Investigation Reference: {activeTaskId}
                 </span>
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-100 mt-0.5">
+                <h2 className="text-xl sm:text-3xl font-serif font-bold text-ink mt-1">
                   {taskDetail.query}
                 </h2>
               </div>
               <button
                 onClick={handleReset}
-                className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 self-start sm:self-auto transition cursor-pointer"
+                className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-xs font-serif font-bold text-ink self-start sm:self-auto transition cursor-pointer shadow-subtle"
               >
-                ← New Research
+                ← Return to Desk
               </button>
             </div>
 
@@ -411,7 +396,7 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      {/* Clarification Modal (Human-in-the-loop) */}
+      {/* Clarification Modal */}
       {taskDetail?.clarification_needed && taskDetail?.clarification_data && (
         <ClarificationModal
           data={taskDetail.clarification_data}

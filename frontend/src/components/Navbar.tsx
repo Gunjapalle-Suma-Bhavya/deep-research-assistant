@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, Settings, Library, Sun, Moon, Cpu } from 'lucide-react';
+import { Compass, Settings, Library, Cpu, Bookmark } from 'lucide-react';
 import { SystemConfig } from '../types';
 
 interface NavbarProps {
@@ -15,50 +15,52 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   config,
   historyCount,
-  isDark,
-  onToggleTheme,
   onOpenSettings,
   onOpenHistory,
   onReset,
 }) => {
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md transition-colors">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+    <header className="sticky top-0 z-30 border-b border-edge bg-cream/95 backdrop-blur-sm transition-colors">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
-        {/* Left: Brand Identity */}
+        {/* Left: Classic Editorial Masthead */}
         <div 
           onClick={onReset}
-          className="flex items-center space-x-2.5 cursor-pointer group"
-          title="Start new research"
+          className="flex items-center space-x-3 cursor-pointer group"
+          title="Return to Research Desk"
         >
-          <div className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700/80 text-blue-400 flex items-center justify-center font-bold text-sm group-hover:border-blue-500 transition-colors shadow-sm">
-            <Compass className="w-4 h-4 text-blue-400 group-hover:rotate-45 transition-transform duration-300" />
+          <div className="w-8 h-8 rounded-[2px] bg-panel border border-edge text-forest flex items-center justify-center font-serif text-base font-bold shadow-subtle group-hover:border-forest transition-colors">
+            DR
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-sm sm:text-base tracking-tight text-slate-100 flex items-center gap-1.5">
-              Deep Research
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 bg-blue-950 text-blue-400 border border-blue-800/60 rounded">
-                Multi-Agent
+            <div className="flex items-baseline space-x-2">
+              <span className="font-serif font-bold text-lg tracking-tight text-ink">
+                Deep Research
               </span>
+              <span className="text-[10px] uppercase font-mono tracking-widest text-muted border-l border-edge pl-2">
+                Vol. I
+              </span>
+            </div>
+            <span className="text-[11px] text-muted -mt-1 font-body italic">
+              Autonomous Multi-Agent Investigation
             </span>
           </div>
         </div>
 
-        {/* Right: Actions & Indicators */}
-        <div className="flex items-center space-x-2">
+        {/* Right: Catalyst-Style Actions */}
+        <div className="flex items-center space-x-2.5">
           
-          {/* Engine Status Pill */}
+          {/* Engine Status Tag */}
           <button
             onClick={onOpenSettings}
-            className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800/80 border border-slate-800 text-xs font-mono transition text-slate-300"
+            className="flex items-center space-x-2 px-2.5 py-1.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-xs font-mono transition text-ink shadow-subtle"
             title="Configure model and search providers"
           >
             <span
-              className={`w-2 h-2 rounded-full ${
-                config?.openai_configured ? 'bg-emerald-400 shadow-sm shadow-emerald-500/50' : 'bg-amber-400'
+              className={`w-1.5 h-1.5 rounded-full ${
+                config?.openai_configured ? 'bg-forest' : 'bg-amber-600'
               }`}
             />
-            <Cpu className="w-3 h-3 text-slate-400" />
             <span className="text-[11px] font-medium hidden sm:inline">
               {config?.openai_model || 'gpt-4o-mini'}
             </span>
@@ -67,33 +69,24 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Settings Button */}
           <button
             onClick={onOpenSettings}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-medium transition flex items-center space-x-1"
+            className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream text-ink border border-edge text-xs font-medium transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
             title="Settings & API Keys"
           >
-            <Settings className="w-3.5 h-3.5 text-slate-400" />
+            <Settings className="w-3.5 h-3.5 text-muted" />
             <span className="hidden sm:inline">Settings</span>
           </button>
 
-          {/* Library / History Button */}
+          {/* Library / Archive Button */}
           <button
             onClick={onOpenHistory}
-            className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-medium transition flex items-center space-x-1.5"
-            title="Research History"
+            className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream text-ink border border-edge text-xs font-medium transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
+            title="Research Archive"
           >
-            <Library className="w-3.5 h-3.5 text-slate-400" />
-            <span>Library</span>
-            <span className="px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-400 text-[10px] font-mono">
+            <Bookmark className="w-3.5 h-3.5 text-muted" />
+            <span>Archive</span>
+            <span className="px-1.5 py-0.2 rounded-[2px] bg-cream text-forest border border-edge text-[10px] font-mono">
               {historyCount}
             </span>
-          </button>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={onToggleTheme}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent hover:border-slate-800 transition"
-            title="Toggle theme"
-          >
-            {isDark ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4" />}
           </button>
 
         </div>

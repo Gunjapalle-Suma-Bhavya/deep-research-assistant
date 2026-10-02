@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Sparkles, SlidersHorizontal, ArrowRight, Zap, BookOpen, Layers, X } from 'lucide-react';
+import { Mic, MicOff, Sparkles, SlidersHorizontal, ArrowRight, Zap, BookOpen, Layers, X, Feather } from 'lucide-react';
 import { ResearchDepth } from '../types';
 
 interface ResearchInputViewProps {
@@ -26,7 +26,6 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    // Initialize Web Speech API if supported
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -46,14 +45,8 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
         }
       };
 
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
       recognitionRef.current = recognition;
     }
   }, []);
@@ -97,43 +90,43 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
   const wordCount = query.trim() ? query.trim().split(/\s+/).length : 0;
 
   return (
-    <section className="max-w-3xl mx-auto w-full py-8 sm:py-12 px-4 transition-all">
-      {/* Hero Header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-blue-950/60 border border-blue-800/60 text-blue-400 text-xs font-medium mb-3">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Autonomous LangGraph Multi-Agent Architecture</span>
+    <section className="max-w-3xl mx-auto w-full py-10 sm:py-14 px-4 transition-all">
+      {/* Editorial Lead Header */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-[2px] bg-panel border border-edge text-forest text-xs font-mono mb-4 shadow-subtle">
+          <Feather className="w-3.5 h-3.5" />
+          <span>LangGraph Multi-Agent Investigation Desk</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-100 mb-3">
-          Deep Research Assistant
+        <h1 className="text-3xl sm:text-5xl font-serif font-bold tracking-tight text-ink mb-4 leading-tight">
+          Inquire Deeply.
         </h1>
-        <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto">
-          Multi-agent orchestration that dynamically scopes topics, parallelizes web searches, synthesizes facts, and produces publication-quality briefs.
+        <p className="text-base sm:text-lg text-muted max-w-xl mx-auto font-body italic leading-relaxed">
+          Formulate a complex hypothesis, technical topic, or market question. Autonomous agents will scope, parallel-search, and synthesize a publication-quality manuscript.
         </p>
       </div>
 
-      {/* Main Input Card */}
+      {/* Main Inquiry Card */}
       <form
         onSubmit={handleSubmit}
-        className="bg-slate-900/80 border border-slate-800 rounded-2xl shadow-xl shadow-black/40 p-4 sm:p-6 backdrop-blur-sm"
+        className="bg-panel border border-edge rounded-[2px] shadow-subtle p-5 sm:p-7"
       >
         {/* Text Area */}
         <div className="relative">
           <textarea
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="What complex topic, technology, or market would you like to deeply investigate?"
-            rows={4}
-            className="w-full bg-slate-950/90 text-slate-100 placeholder-slate-500 rounded-xl p-4 text-sm sm:text-base border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none outline-none"
+            placeholder="Type your inquiry or research hypothesis here..."
+            rows={5}
+            className="w-full bg-cream text-ink placeholder-muted/60 rounded-[2px] p-4 text-base border border-edge focus:border-forest focus:ring-0 transition resize-none outline-none font-body leading-relaxed shadow-subtle"
           />
 
-          {/* Floating Textarea Controls */}
+          {/* Floating Controls */}
           <div className="absolute right-3 bottom-3 flex items-center space-x-2">
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="p-1.5 text-slate-400 hover:text-slate-200 bg-slate-800/80 hover:bg-slate-800 rounded-lg transition"
+                className="p-1.5 text-muted hover:text-ink bg-panel hover:bg-cream border border-edge rounded-[2px] transition"
                 title="Clear input"
               >
                 <X className="w-3.5 h-3.5" />
@@ -144,114 +137,114 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
               type="button"
               onClick={handleEnhance}
               disabled={!query.trim()}
-              className="p-1.5 text-blue-400 hover:text-blue-300 disabled:opacity-40 bg-blue-950/80 hover:bg-blue-900 border border-blue-800/60 rounded-lg text-xs font-medium transition flex items-center space-x-1"
+              className="p-1.5 px-2 text-forest hover:text-forest-hover disabled:opacity-40 bg-panel hover:bg-cream border border-edge rounded-[2px] text-xs font-mono transition flex items-center space-x-1"
               title="Enhance prompt for deep investigation"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline text-[11px]">Enhance</span>
+              <span className="hidden sm:inline">Enhance</span>
             </button>
 
             <button
               type="button"
               onClick={toggleSpeech}
-              className={`p-2 rounded-lg border text-xs font-medium transition flex items-center space-x-1 ${
+              className={`p-2 rounded-[2px] border text-xs font-medium transition flex items-center space-x-1 ${
                 isListening
-                  ? 'bg-rose-500/20 text-rose-400 border-rose-500 animate-mic-pulse'
-                  : 'bg-slate-800 text-slate-400 hover:text-slate-200 border-slate-700/80'
+                  ? 'bg-rose-100 text-rose-800 border-rose-300 animate-mic-pulse'
+                  : 'bg-panel text-muted hover:text-ink border-edge hover:bg-cream'
               }`}
-              title={isListening ? 'Stop speech recognition' : 'Dictate with speech'}
+              title={isListening ? 'Stop dictation' : 'Dictate inquiry with voice'}
             >
-              {isListening ? <MicOff className="w-4 h-4 text-rose-400" /> : <Mic className="w-4 h-4" />}
+              {isListening ? <MicOff className="w-4 h-4 text-rose-800" /> : <Mic className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         {/* Char & Word count bar */}
-        <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1 font-mono">
-          <span>{isListening ? '🎙️ Listening to your voice...' : 'Press Start or select an example below'}</span>
+        <div className="flex items-center justify-between text-xs text-muted mt-2.5 px-1 font-mono">
+          <span>{isListening ? '🎙️ Recording voice dictation...' : 'Enter your question or choose a suggested inquiry'}</span>
           <span>
             {wordCount} words · {query.length} chars
           </span>
         </div>
 
         {/* Depth Presets */}
-        <div className="mt-5 pt-4 border-t border-slate-800/80">
-          <label className="block text-xs font-semibold text-slate-400 mb-2.5 uppercase tracking-wider font-mono">
-            Research Depth & Scope
+        <div className="mt-6 pt-5 border-t border-edge">
+          <label className="block text-xs font-semibold text-muted mb-3 uppercase tracking-wider font-mono">
+            Investigation Scope & Breadth
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <button
               type="button"
               onClick={() => setDepth('quick')}
-              className={`flex items-start p-3 rounded-xl border text-left transition ${
+              className={`flex items-start p-3.5 rounded-[2px] border text-left transition ${
                 depth === 'quick'
-                  ? 'bg-blue-950/40 border-blue-500/80 text-blue-300'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
+                  ? 'bg-cream border-forest text-ink ring-1 ring-forest'
+                  : 'bg-panel border-edge text-muted hover:border-muted/50 hover:bg-cream'
               }`}
             >
-              <Zap className="w-4 h-4 mr-2.5 mt-0.5 text-amber-400 shrink-0" />
+              <Zap className="w-4 h-4 mr-2.5 mt-0.5 text-forest shrink-0" />
               <div>
-                <div className="text-xs font-semibold text-slate-200">Quick</div>
-                <div className="text-[11px] text-slate-500">2 subtopics · ~6-10 sources</div>
+                <div className="text-sm font-serif font-bold text-ink">Brief Overview</div>
+                <div className="text-xs text-muted font-mono mt-0.5">2 subtopics · ~6-10 sources</div>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setDepth('standard')}
-              className={`flex items-start p-3 rounded-xl border text-left transition ${
+              className={`flex items-start p-3.5 rounded-[2px] border text-left transition ${
                 depth === 'standard'
-                  ? 'bg-blue-950/40 border-blue-500/80 text-blue-300 ring-1 ring-blue-500/50'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
+                  ? 'bg-cream border-forest text-ink ring-1 ring-forest'
+                  : 'bg-panel border-edge text-muted hover:border-muted/50 hover:bg-cream'
               }`}
             >
-              <BookOpen className="w-4 h-4 mr-2.5 mt-0.5 text-blue-400 shrink-0" />
+              <BookOpen className="w-4 h-4 mr-2.5 mt-0.5 text-forest shrink-0" />
               <div>
-                <div className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                  Standard
-                  <span className="text-[9px] bg-blue-900/60 text-blue-300 px-1 py-0.2 rounded font-mono">Default</span>
+                <div className="text-sm font-serif font-bold text-ink flex items-center gap-1.5">
+                  Standard Article
+                  <span className="text-[10px] bg-panel text-forest px-1 border border-edge rounded-[2px] font-mono">Standard</span>
                 </div>
-                <div className="text-[11px] text-slate-500">3-4 subtopics · ~12-20 sources</div>
+                <div className="text-xs text-muted font-mono mt-0.5">3-4 subtopics · ~15-20 sources</div>
               </div>
             </button>
 
             <button
               type="button"
               onClick={() => setDepth('comprehensive')}
-              className={`flex items-start p-3 rounded-xl border text-left transition ${
+              className={`flex items-start p-3.5 rounded-[2px] border text-left transition ${
                 depth === 'comprehensive'
-                  ? 'bg-blue-950/40 border-blue-500/80 text-blue-300'
-                  : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700'
+                  ? 'bg-cream border-forest text-ink ring-1 ring-forest'
+                  : 'bg-panel border-edge text-muted hover:border-muted/50 hover:bg-cream'
               }`}
             >
-              <Layers className="w-4 h-4 mr-2.5 mt-0.5 text-purple-400 shrink-0" />
+              <Layers className="w-4 h-4 mr-2.5 mt-0.5 text-forest shrink-0" />
               <div>
-                <div className="text-xs font-semibold text-slate-200">Comprehensive</div>
-                <div className="text-[11px] text-slate-500">5+ subtopics · ~25-40 sources</div>
+                <div className="text-sm font-serif font-bold text-ink">Full Monograph</div>
+                <div className="text-xs text-muted font-mono mt-0.5">5+ subtopics · ~25-40 sources</div>
               </div>
             </button>
           </div>
         </div>
 
         {/* Custom Instructions Accordion */}
-        <div className="mt-4">
+        <div className="mt-5">
           <button
             type="button"
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="flex items-center space-x-1.5 text-xs text-slate-400 hover:text-slate-200 transition"
+            className="flex items-center space-x-1.5 text-xs text-muted hover:text-ink font-mono transition"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-500" />
-            <span>{showAdvanced ? 'Hide Custom Instructions' : 'Add Custom Instructions or Focus Areas'}</span>
+            <SlidersHorizontal className="w-3.5 h-3.5 text-muted" />
+            <span>{showAdvanced ? 'Hide Editorial Constraints' : 'Add Editorial Constraints & Focus Areas'}</span>
           </button>
 
           {showAdvanced && (
-            <div className="mt-2.5 animate-fadeIn">
+            <div className="mt-3">
               <textarea
                 value={customInstructions}
                 onChange={(e) => setCustomInstructions(e.target.value)}
-                placeholder="Optional: Specify target perspectives, regions, time horizons, or exclusions (e.g. 'Focus on post-2024 developments, emphasize open-source models, exclude paywalled analyst reports')"
-                rows={2}
-                className="w-full bg-slate-950/80 text-slate-200 placeholder-slate-600 rounded-lg p-3 text-xs border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                placeholder="Optional: Specify methodological constraints, regions, time horizons, or exclusions (e.g. 'Focus on post-2024 developments, emphasize peer-reviewed research, exclude speculative venture claims')"
+                rows={3}
+                className="w-full bg-cream text-ink placeholder-muted/60 rounded-[2px] p-3 text-xs border border-edge focus:border-forest outline-none font-body leading-relaxed"
               />
             </div>
           )}
@@ -262,28 +255,28 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
           <button
             type="submit"
             disabled={!query.trim() || isLoading}
-            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full sm:w-auto px-6 py-3 rounded-[2px] bg-forest hover:bg-forest-hover disabled:opacity-40 text-cream font-serif font-bold text-sm tracking-wide shadow-subtle transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
-            <span>{isLoading ? 'Initializing Multi-Agent Graph...' : 'Start Deep Research'}</span>
-            <ArrowRight className="w-4 h-4" />
+            <span>{isLoading ? 'Dispatching Agents...' : 'Begin Deep Research'}</span>
+            <ArrowRight className="w-4 h-4 text-cream" />
           </button>
         </div>
       </form>
 
-      {/* Suggested Topics Pill Showcase */}
-      <div className="mt-8">
-        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 font-mono text-center sm:text-left">
-          Suggested Inquiries
+      {/* Suggested Topics Showcase */}
+      <div className="mt-10">
+        <div className="text-xs font-semibold text-muted uppercase tracking-wider mb-3 font-mono text-center sm:text-left">
+          Curated Inquiries for Exploration
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {EXAMPLE_PROMPTS.map((prompt, i) => (
             <button
               key={i}
               type="button"
               onClick={() => setQuery(prompt)}
-              className="text-xs text-slate-400 hover:text-slate-200 bg-slate-900/60 hover:bg-slate-850 border border-slate-800/80 hover:border-slate-700 px-3 py-2 rounded-xl transition text-left"
+              className="text-xs text-ink hover:text-forest bg-panel hover:bg-cream border border-edge p-3 rounded-[2px] transition text-left font-body leading-normal shadow-subtle"
             >
-              {prompt}
+              "{prompt}"
             </button>
           ))}
         </div>

@@ -3,127 +3,257 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-cream: #F9F6F0;
+    --bg-panel: #F1EDE4;
+    --text-ink: #1C1B1A;
+    --text-muted: #6A6763;
+    --color-forest: #2A4736;
+    --color-edge: #DFD9CF;
+  }
+
   body {
-    @apply bg-slate-950 text-slate-100 antialiased font-sans;
+    background-color: #F9F6F0;
+    color: #1C1B1A;
+    font-family: 'Newsreader', Georgia, serif;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', Georgia, serif;
+    letter-spacing: -0.02em;
+    color: #1C1B1A;
+  }
+
+  input, textarea, select, button {
+    font-family: 'Newsreader', Georgia, serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
-/* Custom Scrollbar */
+/* Subtle Editorial Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #F1EDE4;
 }
 ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 4px;
+  background: #DFD9CF;
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #6A6763;
 }
 
-/* Pulsing node animation */
-@keyframes flow-pulse {
+/* DAG subtle flow animation */
+@keyframes editorial-pulse {
   0%, 100% {
-    opacity: 0.4;
-    stroke-dashoffset: 20;
+    opacity: 0.6;
   }
   50% {
     opacity: 1;
-    stroke-dashoffset: 0;
   }
 }
 
-.animate-dag-flow {
-  stroke-dasharray: 6 4;
-  animation: flow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-editorial-pulse {
+  animation: editorial-pulse 2s ease-in-out infinite;
 }
 
-/* Speech ripple */
-@keyframes ripple {
+/* Speech recording ripple */
+@keyframes mic-editorial-pulse {
   0% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    box-shadow: 0 0 0 0 rgba(42, 71, 54, 0.4);
   }
   70% {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    box-shadow: 0 0 0 8px rgba(42, 71, 54, 0);
   }
   100% {
-    transform: scale(0.95);
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    box-shadow: 0 0 0 0 rgba(42, 71, 54, 0);
   }
 }
 
 .animate-mic-pulse {
-  animation: ripple 1.5s infinite;
+  animation: mic-editorial-pulse 1.5s infinite;
 }
 
-/* Markdown typography enhancements */
+/* Publication Report Typography */
+.prose-report {
+  font-family: 'Newsreader', Georgia, serif;
+  color: #1C1B1A;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
 .prose-report h1 {
-  @apply text-2xl font-bold text-slate-100 mt-6 mb-3 border-b border-slate-800 pb-2;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1C1B1A;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #DFD9CF;
 }
+
 .prose-report h2 {
-  @apply text-xl font-semibold text-slate-200 mt-5 mb-2.5;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1C1B1A;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px dashed #DFD9CF;
+  padding-bottom: 0.25rem;
 }
+
 .prose-report h3 {
-  @apply text-lg font-medium text-slate-300 mt-4 mb-2;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #2A4736;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
 }
+
 .prose-report p {
-  @apply text-slate-300 leading-relaxed mb-4;
+  color: #1C1B1A;
+  margin-bottom: 1.25rem;
+  text-align: justify;
+  text-justify: inter-word;
 }
+
 .prose-report ul {
-  @apply list-disc list-inside space-y-1.5 text-slate-300 mb-4 ml-2;
+  list-style-type: disc;
+  margin-left: 1.5rem;
+  margin-bottom: 1.25rem;
+  color: #1C1B1A;
 }
+
 .prose-report ol {
-  @apply list-decimal list-inside space-y-1.5 text-slate-300 mb-4 ml-2;
+  list-style-type: decimal;
+  margin-left: 1.5rem;
+  margin-bottom: 1.25rem;
+  color: #1C1B1A;
 }
+
+.prose-report li {
+  margin-bottom: 0.35rem;
+}
+
 .prose-report blockquote {
-  @apply border-l-4 border-blue-500 pl-4 py-1 italic text-slate-400 bg-slate-900/40 rounded-r my-4;
+  border-left: 3px solid #2A4736;
+  padding-left: 1.25rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-style: italic;
+  color: #6A6763;
+  background-color: #F1EDE4;
+  border-radius: 2px;
 }
+
 .prose-report code {
-  @apply font-mono text-xs bg-slate-800 text-blue-300 px-1.5 py-0.5 rounded border border-slate-700/60;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  background-color: #F1EDE4;
+  color: #2A4736;
+  padding: 0.15rem 0.35rem;
+  border: 1px solid #DFD9CF;
+  border-radius: 2px;
 }
+
 .prose-report pre code {
-  @apply block p-4 bg-slate-900 rounded-lg overflow-x-auto text-slate-200 border border-slate-800 my-4 text-xs;
+  display: block;
+  padding: 1rem;
+  background-color: #F1EDE4;
+  color: #1C1B1A;
+  border: 1px solid #DFD9CF;
+  border-radius: 2px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  margin: 1.25rem 0;
 }
+
 .prose-report table {
-  @apply w-full border-collapse border border-slate-800 my-4 text-sm text-left;
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #DFD9CF;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
 }
+
 .prose-report th {
-  @apply bg-slate-900 border border-slate-800 p-2.5 font-semibold text-slate-200;
+  background-color: #F1EDE4;
+  border: 1px solid #DFD9CF;
+  padding: 0.6rem 0.8rem;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  color: #1C1B1A;
+  text-align: left;
 }
+
 .prose-report td {
-  @apply border border-slate-800 p-2.5 text-slate-300;
+  border: 1px solid #DFD9CF;
+  padding: 0.6rem 0.8rem;
+  color: #1C1B1A;
 }
+
 .prose-report a {
-  @apply text-blue-400 underline decoration-blue-500/40 hover:decoration-blue-400 transition-colors;
+  color: #2A4736;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: #2A4736;
 }
 
-/* Citation reference chip */
+/* Scholarly Citation Badge */
 .citation-badge {
-  @apply inline-flex items-center justify-center text-[10px] font-mono font-medium text-blue-400 bg-blue-950/80 hover:bg-blue-900 border border-blue-800/80 px-1 py-0.5 rounded ml-0.5 mr-0.5 cursor-pointer transition select-none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #2A4736;
+  background-color: #F1EDE4;
+  border: 1px solid #DFD9CF;
+  padding: 0.05rem 0.35rem;
+  border-radius: 2px;
+  margin: 0 0.15rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  vertical-align: super;
 }
 
-/* Print styling for 1-click clean PDF export */
+.citation-badge:hover {
+  background-color: #2A4736;
+  color: #F9F6F0;
+  border-color: #2A4736;
+}
+
+/* Clean Editorial Print View */
 @media print {
   body {
-    background: white !important;
-    color: black !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
   }
   header, nav, aside, button, .no-print {
     display: none !important;
   }
   .prose-report {
-    color: black !important;
+    color: #000000 !important;
   }
   .prose-report h1, .prose-report h2, .prose-report h3 {
-    color: black !important;
-    border-color: #ccc !important;
-  }
-  .prose-report p, .prose-report li {
-    color: #222 !important;
+    color: #000000 !important;
+    border-color: #cccccc !important;
   }
 }

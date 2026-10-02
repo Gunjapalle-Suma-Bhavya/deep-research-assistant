@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CitationInspector } from '../components/CitationInspector';
@@ -31,7 +30,7 @@ describe('CitationInspector', () => {
       />
     );
 
-    expect(screen.getByText('Citation Inspector')).toBeInTheDocument();
+    expect(screen.getByText(/Bibliographic Index|Citation Inspector/)).toBeInTheDocument();
     expect(screen.getByText('Quantum Supremacy in Superconducting Circuits')).toBeInTheDocument();
     expect(screen.getByText('Scalable Error Mitigation via Topological Codes')).toBeInTheDocument();
   });
@@ -45,7 +44,7 @@ describe('CitationInspector', () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText(/search source/i);
+    const searchInput = screen.getByPlaceholderText(/filter source|search source/i);
     fireEvent.change(searchInput, { target: { value: 'Topological' } });
 
     expect(screen.getByText('Scalable Error Mitigation via Topological Codes')).toBeInTheDocument();

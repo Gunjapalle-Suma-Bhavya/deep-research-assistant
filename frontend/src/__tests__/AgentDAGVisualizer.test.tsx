@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { AgentDAGVisualizer } from '../components/AgentDAGVisualizer';
@@ -18,7 +17,7 @@ describe('AgentDAGVisualizer', () => {
     expect(screen.getByText('Topic Planner')).toBeInTheDocument();
     expect(screen.getByText('Parallel Workers')).toBeInTheDocument();
     expect(screen.getByText('Synthesizer')).toBeInTheDocument();
-    expect(screen.getByText('Final Briefing')).toBeInTheDocument();
+    expect(screen.getByText(/Final Monograph|Final Briefing/)).toBeInTheDocument();
   });
 
   it('renders subtopics when present in research state', () => {

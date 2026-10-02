@@ -1,18 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
-  Download,
   Copy,
   Check,
   Printer,
   Volume2,
-  VolumeX,
-  Play,
   Pause,
-  RotateCcw,
   BookOpen,
-  FileText,
-  Sparkles,
-  ExternalLink,
 } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -42,11 +35,10 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [audioDuration, setAudioDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Configure marked for citation parsing & security
   const getRenderedContent = () => {
     let md = report.full_markdown || '';
 
-    // Replace citations like [1], [2], [1, 2] with clickable HTML chips
+    // Replace citations like [1], [2] with scholarly clickable superscript HTML chips
     md = md.replace(/\[(\d+)\]/g, (match, p1) => {
       return `<button type="button" class="citation-badge" data-citation-index="${p1}">${match}</button>`;
     });
@@ -82,7 +74,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       return;
     }
 
-    // Generate Audio
     try {
       setIsGeneratingAudio(true);
       const blob = await api.generateAudioBriefing(taskId);
@@ -108,7 +99,6 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     }
   };
 
-  // Intercept click on rendered citation badges
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = (e.target as HTMLElement).closest('.citation-badge');
     if (target) {
@@ -122,54 +112,55 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const wordCount = report.full_markdown ? report.full_markdown.trim().split(/\s+/).length : 0;
 
   return (
-    <div className="max-w-4xl mx-auto w-full py-6">
-      {/* Report Header Card */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-
-        <div className="flex flex-wrap items-center gap-2 mb-3">
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase bg-emerald-950 text-emerald-400 border border-emerald-800">
-            Synthesis Complete
+    <div className="max-w-4xl mx-auto w-full py-8">
+      {/* Publication Masthead Card */}
+      <div className="bg-panel border border-edge rounded-[2px] p-6 sm:p-8 mb-8 shadow-subtle">
+        <div className="flex flex-wrap items-center gap-2 mb-4 border-b border-edge pb-3">
+          <span className="px-2 py-0.5 rounded-[2px] text-[10px] font-mono uppercase bg-cream text-forest border border-edge font-bold tracking-wider">
+            Verified Manuscript
           </span>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
-            {sources.length} Verified Sources
+          <span className="px-2 py-0.5 rounded-[2px] text-[10px] font-mono bg-cream text-muted border border-edge">
+            {sources.length} Verified Citations
           </span>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
+          <span className="px-2 py-0.5 rounded-[2px] text-[10px] font-mono bg-cream text-muted border border-edge">
             ~{wordCount} Words
+          </span>
+          <span className="px-2 py-0.5 rounded-[2px] text-[10px] font-mono bg-cream text-muted border border-edge ml-auto">
+            {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
           </span>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight leading-tight mb-4">
-          {report.title || 'Comprehensive Investigation Report'}
+        <h1 className="text-2xl sm:text-4xl font-serif font-bold text-ink tracking-tight leading-tight mb-4">
+          {report.title || 'Comprehensive Research Monograph'}
         </h1>
 
         {/* Action Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800/80 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-edge text-xs">
           {/* Audio briefing trigger */}
           <div className="flex items-center space-x-2">
             <button
               onClick={handleAudioToggle}
               disabled={isGeneratingAudio}
-              className={`px-3 py-1.5 rounded-lg border font-medium transition flex items-center space-x-1.5 ${
+              className={`px-3 py-1.5 rounded-[2px] border font-serif font-bold transition flex items-center space-x-1.5 shadow-subtle cursor-pointer ${
                 isPlayingAudio
-                  ? 'bg-purple-950 text-purple-300 border-purple-800'
-                  : 'bg-slate-800 hover:bg-slate-750 text-slate-200 border-slate-700'
+                  ? 'bg-forest text-cream border-forest'
+                  : 'bg-cream hover:bg-panel text-ink border-edge'
               }`}
             >
               {isGeneratingAudio ? (
                 <>
-                  <span className="w-3.5 h-3.5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-                  <span>Synthesizing Voice...</span>
+                  <span className="w-3.5 h-3.5 border-2 border-forest border-t-transparent rounded-full animate-spin" />
+                  <span>Synthesizing Narration...</span>
                 </>
               ) : isPlayingAudio ? (
                 <>
                   <Pause className="w-3.5 h-3.5" />
-                  <span>Pause Briefing</span>
+                  <span>Pause Narration</span>
                 </>
               ) : (
                 <>
-                  <Volume2 className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Audio Briefing</span>
+                  <Volume2 className="w-3.5 h-3.5 text-forest" />
+                  <span>Audio Monograph</span>
                 </>
               )}
             </button>
@@ -185,40 +176,40 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             )}
           </div>
 
-          {/* Export & Utility Buttons */}
+          {/* Export & Inspection Buttons */}
           <div className="flex items-center space-x-2">
             <button
               onClick={onOpenSourcesDrawer}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-medium transition flex items-center space-x-1"
-              title="Inspect citations and scraped sources"
+              className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
+              title="Inspect citations and primary sources"
             >
-              <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-              <span>Sources ({sources.length})</span>
+              <BookOpen className="w-3.5 h-3.5 text-forest" />
+              <span>Footnotes ({sources.length})</span>
             </button>
 
             <button
               onClick={handleCopyMarkdown}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-medium transition flex items-center space-x-1"
-              title="Copy markdown content"
+              className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1 shadow-subtle cursor-pointer"
+              title="Copy markdown text"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-forest" /> : <Copy className="w-3.5 h-3.5 text-muted" />}
               <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
 
             <button
               onClick={handlePrint}
-              className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-medium transition flex items-center space-x-1"
-              title="Print / Save PDF"
+              className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1 shadow-subtle cursor-pointer"
+              title="Print manuscript or save as PDF"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5 text-muted" />
               <span className="hidden sm:inline">PDF</span>
             </button>
 
-            <div className="flex items-center space-x-1 border-l border-slate-700/80 pl-2">
+            <div className="flex items-center space-x-1 border-l border-edge pl-2">
               <a
                 href={api.getExportUrl(taskId, 'md')}
                 download
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-mono"
+                className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
                 title="Download .md file"
               >
                 .MD
@@ -226,7 +217,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <a
                 href={api.getExportUrl(taskId, 'html')}
                 download
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-mono"
+                className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
                 title="Download .html file"
               >
                 .HTML
@@ -234,8 +225,8 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
               <a
                 href={api.getExportUrl(taskId, 'json')}
                 download
-                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-mono"
-                title="Download raw .json session"
+                className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
+                title="Download raw .json data"
               >
                 .JSON
               </a>
@@ -243,9 +234,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           </div>
         </div>
 
-        {/* Audio scrub bar when loaded */}
+        {/* Audio scrub bar when active */}
         {audioUrl && (
-          <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center space-x-3 text-xs font-mono text-slate-400">
+          <div className="mt-4 pt-3 border-t border-edge flex items-center space-x-3 text-xs font-mono text-muted">
             <span>{Math.floor(audioProgress)}s</span>
             <input
               type="range"
@@ -257,18 +248,18 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
                   audioRef.current.currentTime = parseFloat(e.target.value);
                 }
               }}
-              className="flex-1 accent-purple-500 h-1 rounded bg-slate-800 cursor-pointer"
+              className="flex-1 accent-[#2A4736] h-1 rounded-[2px] bg-cream border border-edge cursor-pointer"
             />
             <span>{Math.floor(audioDuration)}s</span>
           </div>
         )}
       </div>
 
-      {/* Rendered Markdown Body */}
+      {/* Rendered Publication Content */}
       <div
         onClick={handleContentClick}
         dangerouslySetInnerHTML={{ __html: getRenderedContent() }}
-        className="prose-report bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 sm:p-10 shadow-lg text-slate-200"
+        className="prose-report bg-cream border border-edge rounded-[2px] p-8 sm:p-14 shadow-paper text-ink"
       />
     </div>
   );
