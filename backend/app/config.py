@@ -45,6 +45,7 @@ class Settings:
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRY_DAYS: int = 7
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
     # Project Directories
     PROJECT_ROOT: Path = project_root

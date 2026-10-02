@@ -70,6 +70,13 @@ export const api = {
     }),
 
   getMe: () => request<any>('/auth/me'),
+  getAuthStatus: () =>
+    request<{
+      mongodb_connected: boolean;
+      database_name: string;
+      google_auth_configured: boolean;
+      google_client_id: string;
+    }>('/auth/status'),
 
   // Config & Diagnostics
   getConfig: () => request<SystemConfig>('/config'),

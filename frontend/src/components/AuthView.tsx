@@ -36,11 +36,75 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const [rememberDevice, setRememberDevice] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [googleClientId, setGoogleClientId] = useState<string>('388286246201-gre0e94ag0mqkptb4buhsbv6j7mmtfsk.apps.googleusercontent.com');
 
-  // Google Account Chooser Modal State
+  // Google Account Chooser Modal State (fallback / direct chooser)
   const [showGoogleChooser, setShowGoogleChooser] = useState(false);
   const [customGoogleEmail, setCustomGoogleEmail] = useState('');
   const [showCustomGoogleInput, setShowCustomGoogleInput] = useState(false);
+
+  // Initialize official Google Identity Services
+  React.useEffect(() => {
+    let isMounted = true;
+    api.getAuthStatus().then((status) => {
+      if (isMounted && status.google_client_id) {
+        setGoogleClientId(status.google_client_id);
+      }
+    }).catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleGoogleCredentialResponse = async (response: any) => {
+    if (!response || !response.credential) {
+      setError('Google Sign-In was cancelled or failed to provide credentials.');
+      return;
+    }
+    setError(null);
+    setIsLoading(true);
+    try {
+      const res = await api.googleAuth({
+        credential: response.credential,
+      });
+      localStorage.setItem('dr_token', res.access_token);
+      onAuthSuccess(res.user, res.access_token);
+    } catch (err: any) {
+      setError(err.message || 'Google verification failed.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Trigger Google Sign-In via official GIS popup prompt
+  const triggerGoogleSignIn = () => {
+    setError(null);
+    const google = (window as any).google;
+    if (google && google.accounts && google.accounts.id) {
+      try {
+        google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: handleGoogleCredentialResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+
+        // Prompt user with official Google account picker
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+            // If Google popup was blocked or skipped, offer account chooser modal
+            setShowGoogleChooser(true);
+          }
+        });
+        return;
+      } catch (err) {
+        console.warn('GIS prompt initialization note:', err);
+      }
+    }
+    // Fallback directly to dialog if Google GIS script is not yet loaded
+    setShowGoogleChooser(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,7 +163,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
       const res = await api.googleAuth({
         email: selectedEmail,
         name: selectedName,
-        picture: 'https://lh3.googleusercontent.com/a/default-user',
+        picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedName)}&background=2A4736&color=F9F6F0`,
       });
       localStorage.setItem('dr_token', res.access_token);
       onAuthSuccess(res.user, res.access_token);
@@ -240,7 +304,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
           <div className="mb-6">
             <button
               type="button"
-              onClick={() => setShowGoogleChooser(true)}
+              onClick={triggerGoogleSignIn}
               disabled={isLoading}
               className="w-full flex items-center justify-center space-x-3.5 px-4 py-3 rounded-[2px] bg-cream hover:bg-panel border border-edge text-ink text-sm font-serif font-bold transition shadow-subtle cursor-pointer disabled:opacity-50 group hover:border-forest"
             >
