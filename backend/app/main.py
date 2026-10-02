@@ -35,15 +35,34 @@ app.add_middleware(
 app.include_router(research_router)
 app.include_router(config_router)
 
-# Mount Frontend static files
-frontend_dir = project_root / "frontend"
-if frontend_dir.exists():
-    app.mount("/static", StaticFiles(directory=str(frontend_dir)), name="static")
+# Mount Frontend: Modern React distribution (dist) with fallback to legacy
+dist_dir = project_root / "frontend" / "dist"
+assets_dir = dist_dir / "assets"
+legacy_dir = project_root / "frontend_legacy"
+
+if dist_dir.exists() and (dist_dir / "index.html").exists():
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
     @app.get("/")
     async def serve_index():
-        """Serve frontend SPA index."""
-        return FileResponse(frontend_dir / "index.html")
+        """Serve modern React SPA index."""
+        return FileResponse(dist_dir / "index.html")
+
+    @app.get("/{full_path:path}")
+    async def catch_all_spa(full_path: str):
+        """SPA fallback for client routes and assets."""
+        file_path = dist_dir / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(dist_dir / "index.html")
+
+elif legacy_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(legacy_dir)), name="static")
+
+    @app.get("/")
+    async def serve_legacy():
+        return FileResponse(legacy_dir / "index.html")
 
 
 if __name__ == "__main__":

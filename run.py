@@ -10,6 +10,14 @@ import os
 import glob
 from pathlib import Path
 
+# Force UTF-8 encoding for Windows standard console streams
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 # Verify Python version (LangChain and LangGraph require Python 3.10+)
 if sys.version_info < (3, 10):
     print("\n" + "=" * 70)

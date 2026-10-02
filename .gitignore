@@ -55,4 +55,7 @@ data/history/*.json
 data/exports/*
 !data/exports/.gitkeep
 !data/history/.gitkeep
-
+# Frontend & Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
