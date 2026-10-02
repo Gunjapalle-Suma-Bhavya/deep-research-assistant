@@ -21,9 +21,13 @@ export class ApiError extends Error {
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
+  const token = localStorage.getItem('dr_token');
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options.headers,
     },
     ...options,
@@ -46,6 +50,27 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  // Authentication & Profile
+  signup: (data: { name: string; email: string; password: string }) =>
+    request<{ access_token: string; token_type: string; user: any }>('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  login: (data: { email: string; password: string }) =>
+    request<{ access_token: string; token_type: string; user: any }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  googleAuth: (data: { credential?: string; email?: string; name?: string; picture?: string }) =>
+    request<{ access_token: string; token_type: string; user: any }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getMe: () => request<any>('/auth/me'),
+
   // Config & Diagnostics
   getConfig: () => request<SystemConfig>('/config'),
   

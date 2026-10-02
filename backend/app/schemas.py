@@ -106,3 +106,39 @@ class ConnectionTestResponse(BaseModel):
     search_message: str
     search_latency_ms: Optional[int] = None
 
+
+# --- User Authentication Schemas ---
+
+class UserSignUpRequest(BaseModel):
+    name: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., min_length=5, max_length=150)
+    password: str = Field(..., min_length=6, max_length=100)
+
+
+class UserLoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: Optional[str] = None
+    email: Optional[str] = None
+    name: Optional[str] = None
+    picture: Optional[str] = None
+
+
+class UserResponse(BaseModel):
+    id: str
+    name: str
+    email: str
+    picture: Optional[str] = None
+    auth_provider: str = "local"
+    created_at: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+

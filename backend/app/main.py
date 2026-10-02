@@ -15,12 +15,24 @@ sys.path.insert(0, str(project_root))
 from backend.app.config import settings
 from backend.app.api.routes_research import router as research_router
 from backend.app.api.routes_config import router as config_router
+from backend.app.api.routes_auth import router as auth_router
+from backend.app.db.mongodb import mongo_manager
 
 app = FastAPI(
     title="Deep Research Multi-Agent Assistant",
     description="A multi-agent deep research system powered by LangGraph, FastAPI, and OpenAI-compatible models",
     version="1.0.0",
 )
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize MongoDB connection pool on startup."""
+    await mongo_manager.connect()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Disconnect MongoDB on shutdown."""
+    await mongo_manager.disconnect()
 
 # Enable CORS for frontend flexibility
 app.add_middleware(
@@ -34,6 +46,7 @@ app.add_middleware(
 # Include API Routers
 app.include_router(research_router)
 app.include_router(config_router)
+app.include_router(auth_router)
 
 # Mount Frontend: Modern React distribution (dist) with fallback to legacy
 dist_dir = project_root / "frontend" / "dist"

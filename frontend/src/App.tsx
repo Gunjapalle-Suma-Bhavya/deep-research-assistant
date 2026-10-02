@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { LandingPage } from './components/LandingPage';
+import { AuthView } from './components/AuthView';
 import { ResearchInputView } from './components/ResearchInputView';
 import { AgentDAGVisualizer } from './components/AgentDAGVisualizer';
 import { LiveProgressFeed } from './components/LiveProgressFeed';
@@ -17,10 +19,16 @@ import {
   ResearchTaskSummary,
   ResearchDepth,
   TaskStatus,
+  User,
+  ViewRoute,
 } from './types';
 
 export const App: React.FC = () => {
-  const [isDark, setIsDark] = useState(false);
+  // Navigation & Auth State
+  const [currentRoute, setCurrentRoute] = useState<ViewRoute>('landing');
+  const [user, setUser] = useState<User | null>(null);
+
+  // System Configuration
   const [config, setConfig] = useState<SystemConfig | null>(null);
 
   // Research State
@@ -39,6 +47,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     loadConfig();
     loadHistory();
+    checkCurrentUser();
   }, []);
 
   const loadConfig = async () => {
@@ -59,8 +68,26 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleToggleTheme = () => {
-    setIsDark(!isDark);
+  const checkCurrentUser = async () => {
+    const token = localStorage.getItem('dr_token');
+    if (!token) return;
+    try {
+      const profile = await api.getMe();
+      setUser(profile);
+    } catch (e) {
+      localStorage.removeItem('dr_token');
+    }
+  };
+
+  const handleAuthSuccess = (authenticatedUser: User) => {
+    setUser(authenticatedUser);
+    setCurrentRoute('desk');
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('dr_token');
+    setUser(null);
+    setCurrentRoute('landing');
   };
 
   // Start new research workflow
@@ -276,6 +303,7 @@ export const App: React.FC = () => {
     try {
       setIsHistoryOpen(false);
       setIsLoading(true);
+      setCurrentRoute('desk');
       const detail = await api.getTaskStatus(taskId);
       setActiveTaskId(taskId);
       setTaskDetail(detail);
@@ -330,71 +358,82 @@ export const App: React.FC = () => {
       <Navbar
         config={config}
         historyCount={historyList.length}
-        isDark={isDark}
-        onToggleTheme={handleToggleTheme}
+        user={user}
+        currentRoute={currentRoute}
+        onNavigate={setCurrentRoute}
+        onSignOut={handleSignOut}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         onReset={handleReset}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!activeTaskId || !taskDetail ? (
-          <ResearchInputView onStartResearch={handleStartResearch} isLoading={isLoading} />
-        ) : (
-          <div className="space-y-6 animate-fadeIn">
-            {/* Header Info */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-edge gap-2">
-              <div>
-                <span className="text-[11px] font-mono uppercase tracking-wider text-muted">
-                  Investigation Reference: {activeTaskId}
-                </span>
-                <h2 className="text-xl sm:text-3xl font-serif font-bold text-ink mt-1">
-                  {taskDetail.query}
-                </h2>
+      {/* Primary Content View Switcher */}
+      {currentRoute === 'landing' ? (
+        <LandingPage onNavigate={setCurrentRoute} isAuthenticated={!!user} />
+      ) : currentRoute === 'login' ? (
+        <AuthView initialMode="login" onAuthSuccess={handleAuthSuccess} onNavigate={setCurrentRoute} />
+      ) : currentRoute === 'signup' ? (
+        <AuthView initialMode="signup" onAuthSuccess={handleAuthSuccess} onNavigate={setCurrentRoute} />
+      ) : (
+        /* Research Desk Workspace */
+        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {!activeTaskId || !taskDetail ? (
+            <ResearchInputView onStartResearch={handleStartResearch} isLoading={isLoading} />
+          ) : (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Header Info */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-edge gap-2">
+                <div>
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-muted">
+                    Investigation Reference: {activeTaskId}
+                  </span>
+                  <h2 className="text-xl sm:text-3xl font-serif font-bold text-ink mt-1">
+                    {taskDetail.query}
+                  </h2>
+                </div>
+                <button
+                  onClick={handleReset}
+                  className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-xs font-serif font-bold text-ink self-start sm:self-auto transition cursor-pointer shadow-subtle"
+                >
+                  ← New Inquiry
+                </button>
               </div>
-              <button
-                onClick={handleReset}
-                className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-xs font-serif font-bold text-ink self-start sm:self-auto transition cursor-pointer shadow-subtle"
-              >
-                ← Return to Desk
-              </button>
+
+              {/* Interactive Agent DAG Visualizer */}
+              <AgentDAGVisualizer
+                status={taskDetail.status}
+                subtopics={taskDetail.research_brief?.subtopics}
+                sourcesCount={taskDetail.sources.length}
+                currentStepDescription={taskDetail.current_step_description}
+              />
+
+              {/* Live Progress Bar & Activity Logs (while research is executing) */}
+              {taskDetail.status !== 'completed' && (
+                <LiveProgressFeed
+                  progressPercentage={taskDetail.progress_percentage}
+                  logs={taskDetail.logs}
+                  onCancel={handleCancelResearch}
+                  isCompleted={false}
+                />
+              )}
+
+              {/* Final Report (if completed or partially streamed) */}
+              {taskDetail.final_report && (
+                <ReportViewer
+                  taskId={activeTaskId}
+                  report={taskDetail.final_report}
+                  sources={taskDetail.sources}
+                  onOpenSourcesDrawer={() => {
+                    setSelectedCitationIndex(null);
+                    setIsSourcesOpen(true);
+                  }}
+                  onSelectCitation={handleSelectCitation}
+                />
+              )}
             </div>
-
-            {/* Interactive Agent DAG Visualizer */}
-            <AgentDAGVisualizer
-              status={taskDetail.status}
-              subtopics={taskDetail.research_brief?.subtopics}
-              sourcesCount={taskDetail.sources.length}
-              currentStepDescription={taskDetail.current_step_description}
-            />
-
-            {/* Live Progress Bar & Activity Logs (while research is executing) */}
-            {taskDetail.status !== 'completed' && (
-              <LiveProgressFeed
-                progressPercentage={taskDetail.progress_percentage}
-                logs={taskDetail.logs}
-                onCancel={handleCancelResearch}
-                isCompleted={false}
-              />
-            )}
-
-            {/* Final Report (if completed or partially streamed) */}
-            {taskDetail.final_report && (
-              <ReportViewer
-                taskId={activeTaskId}
-                report={taskDetail.final_report}
-                sources={taskDetail.sources}
-                onOpenSourcesDrawer={() => {
-                  setSelectedCitationIndex(null);
-                  setIsSourcesOpen(true);
-                }}
-                onSelectCitation={handleSelectCitation}
-              />
-            )}
-          </div>
-        )}
-      </main>
+          )}
+        </main>
+      )}
 
       {/* Clarification Modal */}
       {taskDetail?.clarification_needed && taskDetail?.clarification_data && (

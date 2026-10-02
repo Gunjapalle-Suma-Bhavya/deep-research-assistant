@@ -51,10 +51,12 @@ htmlcov/
 .ruff_cache/
 
 # Application Data & Export artifacts
+data/*.json
 data/history/*.json
 data/exports/*
 !data/exports/.gitkeep
 !data/history/.gitkeep
+!data/.gitkeep
 # Frontend & Node.js
 frontend/node_modules/
 frontend/dist/

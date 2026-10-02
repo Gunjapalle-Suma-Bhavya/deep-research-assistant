@@ -117,3 +117,21 @@ export interface ConnectionTestResult {
   search_message: string;
   search_latency_ms?: number;
 }
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  picture?: string;
+  auth_provider?: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export type ViewRoute = 'landing' | 'desk' | 'login' | 'signup';
+

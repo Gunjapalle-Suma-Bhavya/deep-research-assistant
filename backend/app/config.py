@@ -38,6 +38,14 @@ class Settings:
     HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
 
+    # Database & Authentication Settings
+    MONGODB_URI: str = os.getenv("MONGODB_URI", "")
+    MONGODB_DB_NAME: str = os.getenv("MONGODB_DB_NAME", "deep_research_db")
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "classic-editorial-jwt-secret-key-2026-secure")
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRY_DAYS: int = 7
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+
     # Project Directories
     PROJECT_ROOT: Path = project_root
     DATA_DIR: Path = project_root / "data"
