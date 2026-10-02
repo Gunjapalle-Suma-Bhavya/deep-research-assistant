@@ -1,16 +1,16 @@
 import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Search, Brain, FileCheck, Layers, Feather, ShieldCheck, Cpu, Globe } from 'lucide-react';
-import { ViewRoute } from '../types';
 
 interface LandingPageProps {
-  onNavigate: (route: ViewRoute) => void;
   isAuthenticated: boolean;
+  onNavigate?: (route: any) => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
-  onNavigate,
   isAuthenticated,
 }) => {
+  const navigate = useNavigate();
   return (
     <div className="w-full flex flex-col font-body">
       {/* Editorial Lead Hero */}
@@ -31,21 +31,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
-          <button
-            onClick={() => onNavigate('desk')}
+          <Link
+            to="/desk"
             className="w-full sm:w-auto px-7 py-3.5 rounded-[2px] bg-forest hover:bg-forest-hover text-cream font-serif font-bold text-base tracking-wide shadow-subtle transition flex items-center justify-center space-x-2.5 cursor-pointer"
           >
             <span>Enter Research Desk</span>
             <ArrowRight className="w-4 h-4 text-cream" />
-          </button>
+          </Link>
 
           {!isAuthenticated && (
-            <button
-              onClick={() => onNavigate('signup')}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-ink font-serif font-bold text-base shadow-subtle transition cursor-pointer"
+            <Link
+              to="/signup"
+              className="w-full sm:w-auto px-6 py-3.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-ink font-serif font-bold text-base shadow-subtle transition cursor-pointer flex items-center justify-center"
             >
               <span>Create Account</span>
-            </button>
+            </Link>
           )}
         </div>
       </section>
@@ -146,13 +146,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Recent Exemplary Monographs
             </h2>
           </div>
-          <button
-            onClick={() => onNavigate('desk')}
+          <Link
+            to="/desk"
             className="text-xs font-serif font-bold text-forest hover:text-forest-hover flex items-center space-x-1 mt-2 sm:mt-0"
           >
             <span>Launch Your Inquiry</span>
             <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -172,12 +172,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="pt-3 border-t border-edge flex items-center justify-between text-xs">
               <span className="font-mono text-[10px] text-forest font-semibold">Tavily + ArXiv</span>
-              <button
-                onClick={() => onNavigate('desk')}
+              <Link
+                to="/desk"
                 className="font-serif font-bold text-forest hover:text-forest-hover hover:underline cursor-pointer flex items-center space-x-1"
               >
                 <span>Investigate Topic →</span>
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -197,12 +197,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="pt-3 border-t border-edge flex items-center justify-between text-xs">
               <span className="font-mono text-[10px] text-forest font-semibold">Peer-Reviewed</span>
-              <button
-                onClick={() => onNavigate('desk')}
+              <Link
+                to="/desk"
                 className="font-serif font-bold text-forest hover:text-forest-hover hover:underline cursor-pointer flex items-center space-x-1"
               >
                 <span>Investigate Topic →</span>
-              </button>
+              </Link>
             </div>
           </div>
 
@@ -222,12 +222,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="pt-3 border-t border-edge flex items-center justify-between text-xs">
               <span className="font-mono text-[10px] text-forest font-semibold">Empirical Data</span>
-              <button
-                onClick={() => onNavigate('desk')}
+              <Link
+                to="/desk"
                 className="font-serif font-bold text-forest hover:text-forest-hover hover:underline cursor-pointer flex items-center space-x-1"
               >
                 <span>Investigate Topic →</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>

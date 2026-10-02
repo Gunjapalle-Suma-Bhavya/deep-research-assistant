@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   Feather,
@@ -19,7 +20,7 @@ import { User, ViewRoute } from '../types';
 interface AuthViewProps {
   initialMode: 'login' | 'signup';
   onAuthSuccess: (user: User, token: string) => void;
-  onNavigate: (route: ViewRoute) => void;
+  onNavigate?: (route: ViewRoute) => void;
 }
 
 export const AuthView: React.FC<AuthViewProps> = ({
@@ -27,6 +28,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
   onAuthSuccess,
   onNavigate,
 }) => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -158,7 +160,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
 
         {/* Top: Publication Emblem */}
         <div className="relative z-10">
-          <div className="flex items-center space-x-3 cursor-pointer" onClick={() => onNavigate('landing')}>
+          <Link to="/" className="flex items-center space-x-3 cursor-pointer">
             <div className="w-9 h-9 rounded-[2px] bg-cream text-forest flex items-center justify-center font-serif text-lg font-bold shadow-subtle">
               DR
             </div>
@@ -170,7 +172,7 @@ export const AuthView: React.FC<AuthViewProps> = ({
                 The Journal of Autonomous Inquiry · Vol. I
               </span>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Middle: Editorial Trust Manifesto */}
@@ -210,12 +212,12 @@ export const AuthView: React.FC<AuthViewProps> = ({
           <div className="lg:hidden flex items-center space-x-2">
             <span className="font-serif font-bold text-lg text-ink">Deep Research</span>
           </div>
-          <button
-            onClick={() => onNavigate('landing')}
+          <Link
+            to="/"
             className="text-xs font-serif font-bold text-muted hover:text-forest transition flex items-center space-x-1 cursor-pointer ml-auto"
           >
             <span>← Return to Homepage</span>
-          </button>
+          </Link>
         </div>
 
         {/* Main Authentication Box */}

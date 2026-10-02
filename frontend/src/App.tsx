@@ -1,4 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useParams,
+  useLocation,
+  Navigate,
+} from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { LandingPage } from './components/LandingPage';
 import { AuthView } from './components/AuthView';
@@ -20,12 +28,13 @@ import {
   ResearchDepth,
   TaskStatus,
   User,
-  ViewRoute,
 } from './types';
 
-export const App: React.FC = () => {
+export const AppContent: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   // Navigation & Auth State
-  const [currentRoute, setCurrentRoute] = useState<ViewRoute>('landing');
   const [user, setUser] = useState<User | null>(null);
 
   // System Configuration
@@ -81,13 +90,13 @@ export const App: React.FC = () => {
 
   const handleAuthSuccess = (authenticatedUser: User) => {
     setUser(authenticatedUser);
-    setCurrentRoute('desk');
+    navigate('/desk');
   };
 
   const handleSignOut = () => {
     localStorage.removeItem('dr_token');
     setUser(null);
-    setCurrentRoute('landing');
+    navigate('/');
   };
 
   // Start new research workflow
@@ -130,6 +139,7 @@ export const App: React.FC = () => {
 
       connectStream(taskId);
       loadHistory();
+      navigate(`/desk/${taskId}`);
     } catch (err: any) {
       alert(`Could not start research: ${err.message}`);
     } finally {
@@ -303,7 +313,7 @@ export const App: React.FC = () => {
     try {
       setIsHistoryOpen(false);
       setIsLoading(true);
-      setCurrentRoute('desk');
+      navigate(`/desk/${taskId}`);
       const detail = await api.getTaskStatus(taskId);
       setActiveTaskId(taskId);
       setTaskDetail(detail);
@@ -345,6 +355,7 @@ export const App: React.FC = () => {
     if (streamClient) streamClient.close();
     setActiveTaskId(null);
     setTaskDetail(null);
+    navigate('/desk');
   };
 
   const handleSelectCitation = (idx: number) => {
@@ -359,81 +370,84 @@ export const App: React.FC = () => {
         config={config}
         historyCount={historyList.length}
         user={user}
-        currentRoute={currentRoute}
-        onNavigate={setCurrentRoute}
         onSignOut={handleSignOut}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenHistory={() => setIsHistoryOpen(true)}
         onReset={handleReset}
       />
 
-      {/* Primary Content View Switcher */}
-      {currentRoute === 'landing' ? (
-        <LandingPage onNavigate={setCurrentRoute} isAuthenticated={!!user} />
-      ) : currentRoute === 'login' ? (
-        <AuthView initialMode="login" onAuthSuccess={handleAuthSuccess} onNavigate={setCurrentRoute} />
-      ) : currentRoute === 'signup' ? (
-        <AuthView initialMode="signup" onAuthSuccess={handleAuthSuccess} onNavigate={setCurrentRoute} />
-      ) : (
-        /* Research Desk Workspace */
-        <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {!activeTaskId || !taskDetail ? (
-            <ResearchInputView onStartResearch={handleStartResearch} isLoading={isLoading} />
-          ) : (
-            <div className="space-y-6 animate-fadeIn">
-              {/* Header Info */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-edge gap-2">
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-muted">
-                    Investigation Reference: {activeTaskId}
-                  </span>
-                  <h2 className="text-xl sm:text-3xl font-serif font-bold text-ink mt-1">
-                    {taskDetail.query}
-                  </h2>
-                </div>
-                <button
-                  onClick={handleReset}
-                  className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-xs font-serif font-bold text-ink self-start sm:self-auto transition cursor-pointer shadow-subtle"
-                >
-                  ← New Inquiry
-                </button>
-              </div>
+      {/* Primary Routes */}
+      <Routes>
+        {/* Landing Page */}
+        <Route
+          path="/"
+          element={<LandingPage isAuthenticated={!!user} />}
+        />
 
-              {/* Interactive Agent DAG Visualizer */}
-              <AgentDAGVisualizer
-                status={taskDetail.status}
-                subtopics={taskDetail.research_brief?.subtopics}
-                sourcesCount={taskDetail.sources.length}
-                currentStepDescription={taskDetail.current_step_description}
-              />
+        {/* Authentication Routes */}
+        <Route
+          path="/login"
+          element={
+            <AuthView
+              initialMode="login"
+              onAuthSuccess={handleAuthSuccess}
+            />
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <AuthView
+              initialMode="signup"
+              onAuthSuccess={handleAuthSuccess}
+            />
+          }
+        />
 
-              {/* Live Progress Bar & Activity Logs (while research is executing) */}
-              {taskDetail.status !== 'completed' && (
-                <LiveProgressFeed
-                  progressPercentage={taskDetail.progress_percentage}
-                  logs={taskDetail.logs}
-                  onCancel={handleCancelResearch}
-                  isCompleted={false}
-                />
-              )}
+        {/* Research Desk Workspace (New Inquiry or with Task ID) */}
+        <Route
+          path="/desk"
+          element={
+            <ResearchWorkspace
+              activeTaskId={activeTaskId}
+              taskDetail={taskDetail}
+              isLoading={isLoading}
+              onStartResearch={handleStartResearch}
+              onReset={handleReset}
+              onCancelResearch={handleCancelResearch}
+              onOpenSourcesDrawer={() => {
+                setSelectedCitationIndex(null);
+                setIsSourcesOpen(true);
+              }}
+              onSelectCitation={handleSelectCitation}
+            />
+          }
+        />
+        <Route
+          path="/desk/:taskId"
+          element={
+            <TaskLoaderRoute
+              activeTaskId={activeTaskId}
+              taskDetail={taskDetail}
+              isLoading={isLoading}
+              setActiveTaskId={setActiveTaskId}
+              setTaskDetail={setTaskDetail}
+              connectStream={connectStream}
+              onStartResearch={handleStartResearch}
+              onReset={handleReset}
+              onCancelResearch={handleCancelResearch}
+              onOpenSourcesDrawer={() => {
+                setSelectedCitationIndex(null);
+                setIsSourcesOpen(true);
+              }}
+              onSelectCitation={handleSelectCitation}
+            />
+          }
+        />
 
-              {/* Final Report (if completed or partially streamed) */}
-              {taskDetail.final_report && (
-                <ReportViewer
-                  taskId={activeTaskId}
-                  report={taskDetail.final_report}
-                  sources={taskDetail.sources}
-                  onOpenSourcesDrawer={() => {
-                    setSelectedCitationIndex(null);
-                    setIsSourcesOpen(true);
-                  }}
-                  onSelectCitation={handleSelectCitation}
-                />
-              )}
-            </div>
-          )}
-        </main>
-      )}
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       {/* Clarification Modal */}
       {taskDetail?.clarification_needed && taskDetail?.clarification_data && (
@@ -471,4 +485,136 @@ export const App: React.FC = () => {
       />
     </div>
   );
+};
+
+// Component for rendering active or input research workspace
+interface ResearchWorkspaceProps {
+  activeTaskId: string | null;
+  taskDetail: ResearchTaskDetail | null;
+  isLoading: boolean;
+  onStartResearch: (query: string, depth: ResearchDepth, customInstructions: string) => void;
+  onReset: () => void;
+  onCancelResearch: () => void;
+  onOpenSourcesDrawer: () => void;
+  onSelectCitation: (idx: number) => void;
+}
+
+const ResearchWorkspace: React.FC<ResearchWorkspaceProps> = ({
+  activeTaskId,
+  taskDetail,
+  isLoading,
+  onStartResearch,
+  onReset,
+  onCancelResearch,
+  onOpenSourcesDrawer,
+  onSelectCitation,
+}) => {
+  return (
+    <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {!activeTaskId || !taskDetail ? (
+        <ResearchInputView onStartResearch={onStartResearch} isLoading={isLoading} />
+      ) : (
+        <div className="space-y-6 animate-fadeIn">
+          {/* Header Info */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-edge gap-2">
+            <div>
+              <span className="text-[11px] font-mono uppercase tracking-wider text-muted">
+                Investigation Reference: {activeTaskId}
+              </span>
+              <h2 className="text-xl sm:text-3xl font-serif font-bold text-ink mt-1">
+                {taskDetail.query}
+              </h2>
+            </div>
+            <button
+              onClick={onReset}
+              className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream border border-edge text-xs font-serif font-bold text-ink self-start sm:self-auto transition cursor-pointer shadow-subtle"
+            >
+              ← New Inquiry
+            </button>
+          </div>
+
+          {/* Interactive Agent DAG Visualizer */}
+          <AgentDAGVisualizer
+            status={taskDetail.status}
+            subtopics={taskDetail.research_brief?.subtopics}
+            sourcesCount={taskDetail.sources.length}
+            currentStepDescription={taskDetail.current_step_description}
+          />
+
+          {/* Live Progress Bar & Activity Logs (while research is executing) */}
+          {taskDetail.status !== 'completed' && (
+            <LiveProgressFeed
+              progressPercentage={taskDetail.progress_percentage}
+              logs={taskDetail.logs}
+              onCancel={onCancelResearch}
+              isCompleted={false}
+            />
+          )}
+
+          {/* Final Report (if completed or partially streamed) */}
+          {taskDetail.final_report && (
+            <ReportViewer
+              taskId={activeTaskId}
+              report={taskDetail.final_report}
+              sources={taskDetail.sources}
+              onOpenSourcesDrawer={onOpenSourcesDrawer}
+              onSelectCitation={onSelectCitation}
+            />
+          )}
+        </div>
+      )}
+    </main>
+  );
+};
+
+// Helper route to load deep-linked tasks like /desk/:taskId
+interface TaskLoaderRouteProps extends ResearchWorkspaceProps {
+  setActiveTaskId: (id: string) => void;
+  setTaskDetail: (detail: ResearchTaskDetail) => void;
+  connectStream: (id: string) => void;
+}
+
+const TaskLoaderRoute: React.FC<TaskLoaderRouteProps> = (props) => {
+  const { taskId } = useParams<{ taskId: string }>();
+  const [loadingTask, setLoadingTask] = useState(false);
+
+  useEffect(() => {
+    if (taskId && taskId !== props.activeTaskId) {
+      setLoadingTask(true);
+      api
+        .getTaskStatus(taskId)
+        .then((detail) => {
+          props.setActiveTaskId(taskId);
+          props.setTaskDetail(detail);
+          if (
+            detail.status !== 'completed' &&
+            detail.status !== 'failed' &&
+            detail.status !== 'cancelled'
+          ) {
+            props.connectStream(taskId);
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to load task from route:', err);
+        })
+        .finally(() => {
+          setLoadingTask(false);
+        });
+    }
+  }, [taskId]);
+
+  if (loadingTask && !props.taskDetail) {
+    return (
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-forest mb-4"></div>
+        <p className="font-serif text-muted italic">Retrieving research dossier {taskId}...</p>
+      </main>
+    );
+  }
+
+  return <ResearchWorkspace {...props} />;
+};
+
+export const App: React.FC = () => {
+  return <AppContent />;
 };

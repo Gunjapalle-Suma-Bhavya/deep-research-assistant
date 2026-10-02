@@ -1,13 +1,12 @@
 import React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Settings, Bookmark, User as UserIcon, LogOut } from 'lucide-react';
-import { SystemConfig, User, ViewRoute } from '../types';
+import { SystemConfig, User } from '../types';
 
 interface NavbarProps {
   config: SystemConfig | null;
   historyCount: number;
   user: User | null;
-  currentRoute: ViewRoute;
-  onNavigate: (route: ViewRoute) => void;
   onSignOut: () => void;
   onOpenSettings: () => void;
   onOpenHistory: () => void;
@@ -18,21 +17,23 @@ export const Navbar: React.FC<NavbarProps> = ({
   config,
   historyCount,
   user,
-  currentRoute,
-  onNavigate,
   onSignOut,
   onOpenSettings,
   onOpenHistory,
   onReset,
 }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const pathname = location.pathname;
+
   return (
     <header className="sticky top-0 z-30 border-b border-edge bg-cream/95 backdrop-blur-sm transition-colors">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* Left: Classic Editorial Masthead */}
         <div className="flex items-center space-x-6">
-          <div 
-            onClick={() => onNavigate('landing')}
+          <Link 
+            to="/"
             className="flex items-center space-x-3 cursor-pointer group"
             title="The Journal of Autonomous Inquiry"
           >
@@ -52,27 +53,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Autonomous Multi-Agent Investigation
               </span>
             </div>
-          </div>
+          </Link>
 
           {/* Primary Nav Links */}
           <nav className="hidden md:flex items-center space-x-1 font-serif text-xs font-bold pl-4 border-l border-edge">
-            <button
-              onClick={() => onNavigate('landing')}
+            <Link
+              to="/"
               className={`px-3 py-1.5 rounded-[2px] transition cursor-pointer ${
-                currentRoute === 'landing'
+                pathname === '/'
                   ? 'text-forest bg-panel border border-edge'
                   : 'text-muted hover:text-ink'
               }`}
             >
               Home
-            </button>
+            </Link>
             <button
               onClick={() => {
-                onNavigate('desk');
                 onReset();
+                navigate('/desk');
               }}
               className={`px-3 py-1.5 rounded-[2px] transition cursor-pointer ${
-                currentRoute === 'desk'
+                pathname.startsWith('/desk')
                   ? 'text-forest bg-panel border border-edge'
                   : 'text-muted hover:text-ink'
               }`}
@@ -156,18 +157,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           ) : (
             <div className="flex items-center space-x-1.5 pl-2 border-l border-edge">
-              <button
-                onClick={() => onNavigate('login')}
+              <Link
+                to="/login"
                 className="px-3 py-1.5 rounded-[2px] bg-panel hover:bg-cream text-ink border border-edge text-xs font-serif font-bold transition shadow-subtle cursor-pointer"
               >
                 Sign In
-              </button>
-              <button
-                onClick={() => onNavigate('signup')}
+              </Link>
+              <Link
+                to="/signup"
                 className="hidden sm:block px-3 py-1.5 rounded-[2px] bg-forest hover:bg-forest-hover text-cream text-xs font-serif font-bold transition shadow-subtle cursor-pointer"
               >
                 Sign Up
-              </button>
+              </Link>
             </div>
           )}
 
