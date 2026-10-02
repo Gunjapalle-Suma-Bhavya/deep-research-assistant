@@ -157,67 +157,76 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {/* Sample 1 */}
-          <div className="bg-panel border border-edge p-6 rounded-[2px] shadow-subtle flex flex-col justify-between">
+          <div className="bg-panel border border-edge p-6 rounded-[2px] shadow-subtle flex flex-col justify-between hover:border-forest/50 transition">
             <div>
               <div className="flex items-center justify-between text-[10px] font-mono text-muted mb-3">
-                <span>MONOGRAPH № 104</span>
-                <span>28 SOURCES</span>
+                <span>INQUIRY TOPIC</span>
+                <span>QUANTUM COMPUTING</span>
               </div>
               <h3 className="font-serif font-bold text-lg text-ink mb-2">
                 Coherence Scaling Benchmarks in Trapped-Ion Quantum Architectures
               </h3>
               <p className="text-xs text-muted font-body leading-relaxed mb-4">
-                Analysis of fault-tolerant error thresholds, optical crosstalk mitigation, and commercialization roadmaps through 2028.
+                Investigates fault-tolerant error thresholds, optical crosstalk mitigation, and commercialization roadmaps through 2028.
               </p>
             </div>
             <div className="pt-3 border-t border-edge flex items-center justify-between text-xs">
-              <span className="font-mono text-[10px] text-forest">Quantum Computing</span>
-              <button onClick={() => onNavigate('desk')} className="font-serif font-bold text-forest hover:underline">
-                Read Abstract →
+              <span className="font-mono text-[10px] text-forest font-semibold">Tavily + ArXiv</span>
+              <button
+                onClick={() => onNavigate('desk')}
+                className="font-serif font-bold text-forest hover:text-forest-hover hover:underline cursor-pointer flex items-center space-x-1"
+              >
+                <span>Investigate Topic →</span>
               </button>
             </div>
           </div>
 
           {/* Sample 2 */}
-          <div className="bg-panel border border-edge p-6 rounded-[2px] shadow-subtle flex flex-col justify-between">
+          <div className="bg-panel border border-edge p-6 rounded-[2px] shadow-subtle flex flex-col justify-between hover:border-forest/50 transition">
             <div>
               <div className="flex items-center justify-between text-[10px] font-mono text-muted mb-3">
-                <span>MONOGRAPH № 098</span>
-                <span>34 SOURCES</span>
+                <span>INQUIRY TOPIC</span>
+                <span>AGENTIC SYSTEMS</span>
               </div>
               <h3 className="font-serif font-bold text-lg text-ink mb-2">
                 Comparative State Machine Design in Modern Multi-Agent Frameworks
               </h3>
               <p className="text-xs text-muted font-body leading-relaxed mb-4">
-                Empirical architectural study evaluating LangGraph vs AutoGen vs CrewAI for cyclical error handling and concurrency.
+                Empirical architectural study evaluating LangGraph vs AutoGen vs CrewAI for cyclical state, error recovery, and concurrency.
               </p>
             </div>
             <div className="pt-3 border-t border-edge flex items-center justify-between text-xs">
-              <span className="font-mono text-[10px] text-forest">Agentic AI</span>
-              <button onClick={() => onNavigate('desk')} className="font-serif font-bold text-forest hover:underline">
-                Read Abstract →
+              <span className="font-mono text-[10px] text-forest font-semibold">Peer-Reviewed</span>
+              <button
+                onClick={() => onNavigate('desk')}
+                className="font-serif font-bold text-forest hover:text-forest-hover hover:underline cursor-pointer flex items-center space-x-1"
+              >
+                <span>Investigate Topic →</span>
               </button>
             </div>
           </div>
 
           {/* Sample 3 */}
-          <div className="bg-panel border border-edge p-6 rounded-[2px] shadow-subtle flex flex-col justify-between">
+          <div className="bg-panel border border-edge p-6 rounded-[2px] shadow-subtle flex flex-col justify-between hover:border-forest/50 transition">
             <div>
               <div className="flex items-center justify-between text-[10px] font-mono text-muted mb-3">
-                <span>MONOGRAPH № 089</span>
-                <span>22 SOURCES</span>
+                <span>INQUIRY TOPIC</span>
+                <span>CLEANTECH</span>
               </div>
               <h3 className="font-serif font-bold text-lg text-ink mb-2">
                 Sulfide-Based Solid-State Electrolytes: Dendrite Resistance & Cost
               </h3>
               <p className="text-xs text-muted font-body leading-relaxed mb-4">
-                Manufacturing scalability assessment for next-generation electric vehicle cells and supply-chain bottlenecks.
+                Technical feasibility and manufacturing scalability assessment for solid-state electric vehicle batteries.
               </p>
             </div>
             <div className="pt-3 border-t border-edge flex items-center justify-between text-xs">
-              <span className="font-mono text-[10px] text-forest">Materials Science</span>
-              <button onClick={() => onNavigate('desk')} className="font-serif font-bold text-forest hover:underline">
-                Read Abstract →
+              <span className="font-mono text-[10px] text-forest font-semibold">Empirical Data</span>
+              <button
+                onClick={() => onNavigate('desk')}
+                className="font-serif font-bold text-forest hover:text-forest-hover hover:underline cursor-pointer flex items-center space-x-1"
+              >
+                <span>Investigate Topic →</span>
               </button>
             </div>
           </div>

@@ -173,21 +173,21 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </div>
         </div>
 
-        {/* Middle: Editorial Testimonial & Trust Manifesto */}
+        {/* Middle: Editorial Trust Manifesto */}
         <div className="relative z-10 my-auto py-12 max-w-md">
           <div className="w-8 h-0.5 bg-cream/40 mb-6" />
           <blockquote className="font-serif text-2xl font-normal leading-relaxed text-cream/95 italic mb-6">
-            "An indispensable instrument for scholars and analysts who demand genuine empirical depth, verified web citations, and structured autonomous reasoning."
+            "An autonomous research desk engineered for researchers and analysts who demand genuine empirical depth, verified web citations, and structured reasoning."
           </blockquote>
           <div className="text-xs font-mono text-cream/80 uppercase tracking-wider">
-            Dr. Eleanor Vance · Computational Epistemology Lab
+            Autonomous Cyclical Synthesis
           </div>
 
           {/* Metric Badges */}
           <div className="grid grid-cols-2 gap-3 mt-10 pt-8 border-t border-cream/20">
             <div className="p-3 rounded-[2px] bg-forest-hover/80 border border-cream/15">
-              <span className="font-serif font-bold text-lg text-cream block">100%</span>
-              <span className="text-[11px] text-cream/70 font-body">Verified Attribution</span>
+              <span className="font-serif font-bold text-lg text-cream block">Live Web</span>
+              <span className="text-[11px] text-cream/70 font-body">Tavily & DuckDuckGo</span>
             </div>
             <div className="p-3 rounded-[2px] bg-forest-hover/80 border border-cream/15">
               <span className="font-serif font-bold text-lg text-cream block">LangGraph</span>
