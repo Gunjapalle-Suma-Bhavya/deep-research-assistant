@@ -155,5 +155,62 @@ class MongoDBManager:
         except Exception:
             pass
 
+    # --- Research Tasks Operations (MongoDB Persistence with User Association) ---
+
+    async def save_research_task(self, task_data: Dict[str, Any]) -> None:
+        """Persist or update research task in MongoDB tasks collection."""
+        task_id = task_data.get("task_id")
+        if not task_id:
+            return
+
+        if self.connected and self.db is not None:
+            try:
+                # Upsert task in MongoDB collection
+                await self.db.research_tasks.update_one(
+                    {"task_id": task_id},
+                    {"$set": task_data},
+                    upsert=True,
+                )
+            except Exception as e:
+                print(f"[MongoDB] Error persisting research task {task_id}: {e}")
+
+    async def get_research_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve research task from MongoDB collection."""
+        if self.connected and self.db is not None:
+            try:
+                task = await self.db.research_tasks.find_one({"task_id": task_id})
+                if task:
+                    task.pop("_id", None)
+                    return task
+            except Exception:
+                pass
+        return None
+
+    async def list_research_tasks(self, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List research tasks from MongoDB collection, optionally filtered by user_id."""
+        if self.connected and self.db is not None:
+            try:
+                query: Dict[str, Any] = {}
+                if user_id:
+                    query["$or"] = [{"user_id": user_id}, {"user_id": None}, {"user_id": ""}]
+                cursor = self.db.research_tasks.find(query).sort("updated_at", -1)
+                tasks = await cursor.to_list(length=100)
+                for t in tasks:
+                    t.pop("_id", None)
+                return tasks
+            except Exception:
+                pass
+        return []
+
+    async def delete_research_task(self, task_id: str) -> bool:
+        """Delete research task from MongoDB collection."""
+        if self.connected and self.db is not None:
+            try:
+                res = await self.db.research_tasks.delete_one({"task_id": task_id})
+                return res.deleted_count > 0
+            except Exception:
+                pass
+        return False
+
 
 mongo_manager = MongoDBManager()

@@ -33,7 +33,7 @@ class TaskStorage:
             print(f"[Storage] Error during cache initialization: {e}")
 
     def save_task(self, task_data: Dict[str, Any]) -> None:
-        """Save or update a task record."""
+        """Save or update a task record with dual-write to local storage and MongoDB Atlas."""
         task_id = task_data.get("task_id")
         if not task_id:
             raise ValueError("Task data must contain 'task_id'.")
@@ -50,6 +50,18 @@ class TaskStorage:
                 json.dump(task_data, f, indent=2, ensure_ascii=False)
         except Exception as e:
             print(f"[Storage] Failed to save task {task_id} to disk: {e}")
+
+        # Seamless async sync to MongoDB collection
+        try:
+            import asyncio
+            from backend.app.db.mongodb import mongo_manager
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(mongo_manager.save_research_task(dict(task_data)))
+            except RuntimeError:
+                pass
+        except Exception as e:
+            print(f"[Storage] Note syncing task to MongoDB: {e}")
 
     def get_task(self, task_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve full task data by ID."""

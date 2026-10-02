@@ -14,19 +14,33 @@ from backend.app.services.storage import storage
 from backend.app.services.research_service import research_service
 from backend.app.services.export_service import generate_html_document
 
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Response, Header
+from backend.app.services.auth_service import auth_service
+
 router = APIRouter(prefix="/api/research", tags=["Research"])
 
 
 @router.post("/start", response_model=Dict[str, Any])
-async def start_research_endpoint(payload: ResearchStartRequest):
+async def start_research_endpoint(
+    payload: ResearchStartRequest,
+    authorization: Optional[str] = Header(None),
+):
     """Initiate a new Deep Research multi-agent workflow."""
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Research query cannot be empty.")
+
+    user_id = None
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        decoded = auth_service.verify_token(token)
+        if decoded:
+            user_id = decoded.get("sub")
 
     task_id = await research_service.start_research(
         query=payload.query.strip(),
         depth=payload.depth,
         custom_instructions=payload.custom_instructions,
+        user_id=user_id,
     )
 
     return {
@@ -81,9 +95,19 @@ async def stream_task_events(task_id: str):
 
 
 @router.get("/history", response_model=List[ResearchTaskSummary])
-async def list_research_history():
+async def list_research_history(authorization: Optional[str] = Header(None)):
     """List all past research runs sorted by recent activity."""
+    user_id = None
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.split(" ")[1]
+        decoded = auth_service.verify_token(token)
+        if decoded:
+            user_id = decoded.get("sub")
+
     tasks = storage.list_tasks()
+    if user_id:
+        tasks = [t for t in tasks if t.get("user_id") in (user_id, None, "")]
+
     summaries = []
     for t in tasks:
         brief = t.get("research_brief") or {}

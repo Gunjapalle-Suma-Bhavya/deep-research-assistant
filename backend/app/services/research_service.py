@@ -109,6 +109,7 @@ class ResearchService:
         query: str,
         depth: str = "comprehensive",
         custom_instructions: Optional[str] = None,
+        user_id: Optional[str] = None,
     ) -> str:
         """Start a new deep research workflow in the background."""
         task_id = str(uuid.uuid4())[:8]
@@ -116,6 +117,7 @@ class ResearchService:
 
         initial_task = {
             "task_id": task_id,
+            "user_id": user_id,
             "query": query,
             "depth": depth,
             "custom_instructions": custom_instructions,
