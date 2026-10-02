@@ -27,38 +27,65 @@ export class ResearchStreamClient {
 
     this.eventSource = new EventSource(url);
 
-    this.eventSource.onmessage = (event) => {
+    const parseAndDispatch = (eventType: string, rawData: any) => {
       try {
-        if (!event.data || event.data === ': keep-alive') return;
-        const payload = JSON.parse(event.data);
-        this.dispatch(payload.event, payload.data);
+        if (!rawData || rawData === ': keep-alive') return;
+        
+        let payload: any = rawData;
+        if (typeof rawData === 'string') {
+          // If rawData accidentally contains 'data: {...}' or 'event: ...'
+          let cleaned = rawData.trim();
+          if (cleaned.startsWith('data:')) {
+            cleaned = cleaned.replace(/^data:\s*/, '');
+          }
+          try {
+            payload = JSON.parse(cleaned);
+          } catch {
+            payload = cleaned;
+          }
+        }
+
+        // Extract event name and data object
+        const resolvedEvent = payload?.event || eventType;
+        const resolvedData = payload?.data !== undefined ? payload.data : payload;
+
+        this.dispatch(resolvedEvent, resolvedData);
       } catch (err) {
-        // Raw event format
-        console.warn('SSE Parse error or plain message:', event.data, err);
+        console.warn('SSE Parse error or unhandled message:', rawData, err);
       }
     };
 
-    // Generic listeners for named SSE events if server uses named events
+    this.eventSource.onmessage = (event) => {
+      parseAndDispatch('message', event.data);
+    };
+
+    // Generic listeners for named SSE events from backend
     const eventTypes = [
+      'ping',
+      'node_transition',
+      'waiting_for_clarification',
+      'clarification_needed',
+      'clarification_received',
+      'brief_generating',
+      'brief_ready',
+      'supervisor_plan',
+      'subagent_start',
+      'subagent_complete',
+      'status',
       'status_update',
       'log',
-      'brief_ready',
-      'clarification_needed',
       'subtopic_update',
       'source_added',
       'report_chunk',
+      'completed',
       'complete',
+      'failed',
       'error',
     ];
 
     eventTypes.forEach((eventType) => {
       this.eventSource?.addEventListener(eventType, (event: any) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          this.dispatch(eventType, parsed);
-        } catch (e) {
-          this.dispatch(eventType, event.data);
-        }
+        parseAndDispatch(eventType, event.data);
       });
     });
 
@@ -78,20 +105,58 @@ export class ResearchStreamClient {
       case 'status_update':
         this.handlers.onStatusUpdate?.(data);
         break;
+      case 'node_transition':
+        this.handlers.onStatusUpdate?.({
+          status: data?.node || 'researching',
+          progress: data?.progress || 30,
+          step: data?.message || 'Processing stage transition...',
+        });
+        if (data?.message) {
+          this.handlers.onLog?.({
+            id: String(Date.now()),
+            timestamp: new Date().toISOString(),
+            agent: 'system',
+            level: 'info',
+            message: data.message,
+          });
+        }
+        break;
       case 'log':
         this.handlers.onLog?.(data);
         break;
       case 'brief':
       case 'brief_ready':
-        this.handlers.onBrief?.(data);
+        this.handlers.onBrief?.(data?.brief || data);
         break;
       case 'clarification':
       case 'clarification_needed':
-        this.handlers.onClarification?.(data);
+      case 'waiting_for_clarification':
+        this.handlers.onClarification?.({
+          reason: data?.reasoning || data?.reason || '',
+          questions: data?.questions || [],
+        });
         break;
       case 'subtopic':
       case 'subtopic_update':
         this.handlers.onSubtopicUpdate?.(data);
+        break;
+      case 'subagent_start':
+        this.handlers.onLog?.({
+          id: String(Date.now()),
+          timestamp: new Date().toISOString(),
+          agent: 'researcher',
+          level: 'search',
+          message: data?.message || `Starting subtopic: ${data?.topic}`,
+        });
+        break;
+      case 'subagent_complete':
+        this.handlers.onLog?.({
+          id: String(Date.now()),
+          timestamp: new Date().toISOString(),
+          agent: 'researcher',
+          level: 'success',
+          message: data?.message || `Completed subtopic: ${data?.topic}`,
+        });
         break;
       case 'source':
       case 'source_added':
@@ -100,12 +165,14 @@ export class ResearchStreamClient {
       case 'report_chunk':
         this.handlers.onReportChunk?.(typeof data === 'string' ? data : data?.chunk || '');
         break;
+      case 'completed':
       case 'complete':
-        this.handlers.onComplete?.(data);
+        this.handlers.onComplete?.(data?.report || data);
         this.close();
         break;
+      case 'failed':
       case 'error':
-        this.handlers.onError?.(typeof data === 'string' ? data : data?.message || 'Unknown error');
+        this.handlers.onError?.(typeof data === 'string' ? data : data?.error || data?.message || 'Unknown error');
         this.close();
         break;
       default:

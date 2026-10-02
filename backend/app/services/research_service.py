@@ -6,6 +6,7 @@ import uuid
 from typing import Dict, Any, Optional, AsyncGenerator
 from datetime import datetime
 
+from sse_starlette.sse import ServerSentEvent
 from backend.app.services.storage import storage
 from deep_research.state import ScopingState, SupervisorState, ClarifyWithUser, ResearchQuestion
 from deep_research.scoping import check_clarification, generate_research_brief
@@ -76,28 +77,28 @@ class ResearchService:
             except Exception as e:
                 print(f"[ResearchService] Error putting event to queue: {e}")
 
-    async def event_generator(self, task_id: str) -> AsyncGenerator[str, None]:
-        """Async generator yielding SSE formatted data strings for a given task."""
+    async def event_generator(self, task_id: str) -> AsyncGenerator[ServerSentEvent, None]:
+        """Async generator yielding ServerSentEvent instances for a given task."""
         queue: asyncio.Queue = asyncio.Queue()
         queues = self._get_or_create_queues(task_id)
         queues.append(queue)
 
         try:
             # Yield initial connection heartbeat
-            yield f"event: ping\ndata: {json.dumps({'status': 'connected'})}\n\n"
+            yield ServerSentEvent(event="ping", data=json.dumps({"status": "connected"}))
 
             while True:
                 try:
                     # Wait for next event with timeout
                     event = await asyncio.wait_for(queue.get(), timeout=25.0)
-                    yield f"event: {event.get('event', 'message')}\ndata: {json.dumps(event)}\n\n"
+                    event_type = event.get("event", "message")
+                    yield ServerSentEvent(event=event_type, data=json.dumps(event))
                     
-                    if event.get("event") in ["completed", "failed", "waiting_for_clarification"]:
-                        # Keep connection alive for potential follow-up or end
-                        pass
+                    if event_type in ["completed", "failed"]:
+                        break
                 except asyncio.TimeoutError:
                     # Send keep-alive ping
-                    yield f"event: ping\ndata: {json.dumps({'ping': True})}\n\n"
+                    yield ServerSentEvent(event="ping", data=json.dumps({"ping": True}))
         except asyncio.CancelledError:
             pass
         finally:

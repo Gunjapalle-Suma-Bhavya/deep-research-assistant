@@ -50,42 +50,48 @@ export const ClarificationModal: React.FC<ClarificationModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {data.questions.map((q, idx) => (
-            <div key={idx} className="space-y-1.5">
-              <label className="block text-xs font-serif font-bold text-ink">
-                {idx + 1}. {q.question}
-              </label>
-              {q.context && (
-                <p className="text-[11px] text-muted font-body italic">{q.context}</p>
-              )}
-              {q.options && q.options.length > 0 ? (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {q.options.map((opt, oIdx) => (
-                    <button
-                      key={oIdx}
-                      type="button"
-                      onClick={() => handleAnswerChange(idx, opt)}
-                      className={`px-3 py-1.5 rounded-[2px] text-xs font-serif transition border ${
-                        answers[`question_${idx}`] === opt
-                          ? 'bg-forest text-cream border-forest font-bold'
-                          : 'bg-cream text-ink border-edge hover:bg-panel'
-                      }`}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <input
-                  type="text"
-                  placeholder="Your clarifying guidance..."
-                  value={answers[`question_${idx}`] || ''}
-                  onChange={(e) => handleAnswerChange(idx, e.target.value)}
-                  className="w-full bg-cream text-ink text-xs p-2.5 rounded-[2px] border border-edge focus:border-forest outline-none font-body shadow-subtle"
-                />
-              )}
-            </div>
-          ))}
+          {data.questions.map((rawQ: any, idx) => {
+            const questionText = typeof rawQ === 'string' ? rawQ : (rawQ?.question || '');
+            const questionContext = typeof rawQ === 'object' ? rawQ?.context : null;
+            const questionOptions = typeof rawQ === 'object' && Array.isArray(rawQ?.options) ? rawQ.options : [];
+
+            return (
+              <div key={idx} className="space-y-1.5">
+                <label className="block text-xs font-serif font-bold text-ink">
+                  {idx + 1}. {questionText}
+                </label>
+                {questionContext && (
+                  <p className="text-[11px] text-muted font-body italic">{questionContext}</p>
+                )}
+                {questionOptions && questionOptions.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {questionOptions.map((opt: string, oIdx: number) => (
+                      <button
+                        key={oIdx}
+                        type="button"
+                        onClick={() => handleAnswerChange(idx, opt)}
+                        className={`px-3 py-1.5 rounded-[2px] text-xs font-serif transition border ${
+                          answers[`question_${idx}`] === opt
+                            ? 'bg-forest text-cream border-forest font-bold'
+                            : 'bg-cream text-ink border-edge hover:bg-panel'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Your clarifying guidance..."
+                    value={answers[`question_${idx}`] || ''}
+                    onChange={(e) => handleAnswerChange(idx, e.target.value)}
+                    className="w-full bg-cream text-ink text-xs p-2.5 rounded-[2px] border border-edge focus:border-forest outline-none font-body shadow-subtle"
+                  />
+                )}
+              </div>
+            );
+          })}
 
           <div className="space-y-1.5 pt-2">
             <label className="block text-xs font-serif font-bold text-muted">
