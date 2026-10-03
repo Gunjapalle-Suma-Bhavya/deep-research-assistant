@@ -91,13 +91,42 @@ class TaskStorage:
             del self._memory_cache[task_id]
         
         file_path = self.storage_dir / f"{task_id}.json"
+        deleted = False
         if file_path.exists():
             try:
                 file_path.unlink()
-                return True
+                deleted = True
             except Exception as e:
                 print(f"[Storage] Error deleting {file_path}: {e}")
-        return False
+        else:
+            deleted = True
+
+        try:
+            import asyncio
+            from backend.app.db.mongodb import mongo_manager
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(mongo_manager.delete_research_task(task_id))
+            except RuntimeError:
+                pass
+        except Exception:
+            pass
+
+        return deleted
+
+    def delete_tasks_by_user(self, user_id: str) -> int:
+        """Delete all tasks belonging strictly to a specific user and return the count deleted."""
+        if not user_id:
+            return 0
+        task_ids_to_delete = [
+            tid for tid, task in list(self._memory_cache.items())
+            if str(task.get("user_id", "")) == str(user_id)
+        ]
+        count = 0
+        for tid in task_ids_to_delete:
+            if self.delete_task(tid):
+                count += 1
+        return count
 
     def clear_all(self) -> int:
         """Delete all saved research tasks and return the count deleted."""

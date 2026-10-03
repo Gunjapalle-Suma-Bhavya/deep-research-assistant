@@ -75,6 +75,9 @@ class ConfigUpdateRequest(BaseModel):
     tavily_api_key: Optional[str] = Field(default=None, description="Tavily Search API Key.")
     search_provider: Optional[str] = Field(default=None, description="Search engine provider.")
     demo_mode: Optional[bool] = Field(default=None, description="Enable simulated zero-cost demo mode.")
+    langsmith_api_key: Optional[str] = Field(default=None, description="LangSmith API Key for tracing and evaluation.")
+    langchain_project: Optional[str] = Field(default=None, description="LangSmith Project Name.")
+    langchain_tracing_v2: Optional[bool] = Field(default=None, description="Enable LangSmith Tracing.")
 
 
 class ConfigResponse(BaseModel):
@@ -88,6 +91,10 @@ class ConfigResponse(BaseModel):
     tavily_masked_key: str
     search_provider: str
     demo_mode: bool
+    langsmith_configured: bool = False
+    langsmith_masked_key: str = ""
+    langchain_project: str = "deep-research-assistant"
+    langchain_tracing_active: bool = False
 
 
 class ConnectionTestRequest(BaseModel):

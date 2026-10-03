@@ -56,10 +56,11 @@ class Settings:
     # Demo Mode
     DEMO_MODE: bool = os.getenv("DEMO_MODE", "false").lower() in ("true", "1", "yes")
 
-    # LangSmith Observability
-    LANGCHAIN_TRACING_V2: str = os.getenv("LANGCHAIN_TRACING_V2", "false")
-    LANGSMITH_API_KEY: str = os.getenv("LANGSMITH_API_KEY", "")
+    # LangSmith Observability & Evaluation
+    LANGCHAIN_TRACING_V2: str = os.getenv("LANGCHAIN_TRACING_V2", "true")
+    LANGSMITH_API_KEY: str = os.getenv("LANGSMITH_API_KEY") or os.getenv("LANGCHAIN_API_KEY", "")
     LANGCHAIN_PROJECT: str = os.getenv("LANGCHAIN_PROJECT", "deep-research-assistant")
+    LANGCHAIN_ENDPOINT: str = os.getenv("LANGCHAIN_ENDPOINT", "https://api.smith.langchain.com")
 
     def mask_key(self, key: str) -> str:
         """Return a masked representation of an API key for safe display."""
@@ -78,6 +79,9 @@ class Settings:
         tavily_api_key: str = None,
         search_provider: str = None,
         demo_mode: bool = None,
+        langsmith_api_key: str = None,
+        langchain_project: str = None,
+        langchain_tracing_v2: bool = None,
     ):
         """Update runtime settings in memory and system environment."""
         if openai_api_key is not None:
@@ -98,9 +102,28 @@ class Settings:
         if demo_mode is not None:
             self.DEMO_MODE = bool(demo_mode)
             os.environ["DEMO_MODE"] = "true" if self.DEMO_MODE else "false"
+        if langsmith_api_key is not None:
+            self.LANGSMITH_API_KEY = langsmith_api_key.strip()
+            os.environ["LANGCHAIN_API_KEY"] = self.LANGSMITH_API_KEY
+            os.environ["LANGSMITH_API_KEY"] = self.LANGSMITH_API_KEY
+        if langchain_project is not None:
+            self.LANGCHAIN_PROJECT = langchain_project.strip()
+            os.environ["LANGCHAIN_PROJECT"] = self.LANGCHAIN_PROJECT
+        if langchain_tracing_v2 is not None:
+            self.LANGCHAIN_TRACING_V2 = "true" if langchain_tracing_v2 else "false"
+            os.environ["LANGCHAIN_TRACING_V2"] = self.LANGCHAIN_TRACING_V2
 
 
 settings = Settings()
+
+# Synchronize LangSmith tracing in environment for LangChain/LangGraph
+if settings.LANGSMITH_API_KEY or os.getenv("LANGCHAIN_API_KEY"):
+    key = settings.LANGSMITH_API_KEY or os.getenv("LANGCHAIN_API_KEY")
+    os.environ["LANGCHAIN_TRACING_V2"] = "true" if settings.LANGCHAIN_TRACING_V2.lower() in ("true", "1", "yes") else "false"
+    os.environ["LANGCHAIN_API_KEY"] = key
+    os.environ["LANGSMITH_API_KEY"] = key
+    os.environ["LANGCHAIN_PROJECT"] = settings.LANGCHAIN_PROJECT
+    os.environ["LANGCHAIN_ENDPOINT"] = settings.LANGCHAIN_ENDPOINT
 
 # Ensure required data directories exist
 settings.HISTORY_DIR.mkdir(parents=True, exist_ok=True)

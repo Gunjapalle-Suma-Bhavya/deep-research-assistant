@@ -33,6 +33,7 @@ async def health_check():
 @router.get("/config", response_model=ConfigResponse)
 async def get_config():
     """Retrieve current runtime configuration with masked API keys."""
+    tracing_active = bool(settings.LANGSMITH_API_KEY) and settings.LANGCHAIN_TRACING_V2.lower() in ("true", "1", "yes")
     return ConfigResponse(
         openai_configured=bool(settings.OPENAI_API_KEY),
         openai_masked_key=settings.mask_key(settings.OPENAI_API_KEY),
@@ -42,6 +43,10 @@ async def get_config():
         tavily_masked_key=settings.mask_key(settings.TAVILY_API_KEY),
         search_provider=settings.SEARCH_PROVIDER,
         demo_mode=settings.DEMO_MODE,
+        langsmith_configured=bool(settings.LANGSMITH_API_KEY),
+        langsmith_masked_key=settings.mask_key(settings.LANGSMITH_API_KEY),
+        langchain_project=settings.LANGCHAIN_PROJECT,
+        langchain_tracing_active=tracing_active,
     )
 
 
@@ -55,8 +60,12 @@ async def update_config(payload: ConfigUpdateRequest):
         tavily_api_key=payload.tavily_api_key,
         search_provider=payload.search_provider,
         demo_mode=payload.demo_mode,
+        langsmith_api_key=payload.langsmith_api_key,
+        langchain_project=payload.langchain_project,
+        langchain_tracing_v2=payload.langchain_tracing_v2,
     )
 
+    tracing_active = bool(settings.LANGSMITH_API_KEY) and settings.LANGCHAIN_TRACING_V2.lower() in ("true", "1", "yes")
     return ConfigResponse(
         openai_configured=bool(settings.OPENAI_API_KEY),
         openai_masked_key=settings.mask_key(settings.OPENAI_API_KEY),
@@ -66,6 +75,10 @@ async def update_config(payload: ConfigUpdateRequest):
         tavily_masked_key=settings.mask_key(settings.TAVILY_API_KEY),
         search_provider=settings.SEARCH_PROVIDER,
         demo_mode=settings.DEMO_MODE,
+        langsmith_configured=bool(settings.LANGSMITH_API_KEY),
+        langsmith_masked_key=settings.mask_key(settings.LANGSMITH_API_KEY),
+        langchain_project=settings.LANGCHAIN_PROJECT,
+        langchain_tracing_active=tracing_active,
     )
 
 

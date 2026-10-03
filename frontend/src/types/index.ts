@@ -138,6 +138,10 @@ export interface SystemConfig {
   tavily_masked_key?: string;
   search_provider: string;
   demo_mode: boolean;
+  langsmith_configured?: boolean;
+  langsmith_masked_key?: string;
+  langchain_project?: string;
+  langchain_tracing_active?: boolean;
 }
 
 export interface ConnectionTestResult {

@@ -23,7 +23,9 @@ export class ResearchStreamClient {
 
   public connect(): void {
     this.isManuallyClosed = false;
-    const url = `/api/research/stream/${this.taskId}`;
+    const token = localStorage.getItem('dr_token');
+    const query = token ? `?token=${encodeURIComponent(token)}` : '';
+    const url = `/api/research/stream/${this.taskId}${query}`;
 
     this.eventSource = new EventSource(url);
 

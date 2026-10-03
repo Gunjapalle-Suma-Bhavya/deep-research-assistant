@@ -92,6 +92,9 @@ export const api = {
     tavily_api_key?: string;
     search_provider?: string;
     demo_mode?: boolean;
+    langsmith_api_key?: string;
+    langchain_project?: string;
+    langchain_tracing_v2?: boolean;
   }>) => request<SystemConfig>('/config', {
     method: 'POST',
     body: JSON.stringify(config),
@@ -135,8 +138,13 @@ export const api = {
 
   // Audio briefing
   generateAudioBriefing: async (taskId: string): Promise<Blob> => {
+    const token = localStorage.getItem('dr_token');
+    const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
     const res = await fetch(`${API_BASE}/research/${taskId}/audio`, {
       method: 'POST',
+      headers: {
+        ...authHeaders,
+      },
     });
     if (!res.ok) {
       let msg = 'Failed to generate audio';
@@ -152,8 +160,11 @@ export const api = {
   },
 
   // Export URLs
-  getExportUrl: (taskId: string, format: 'md' | 'html' | 'json' | 'docx' | 'bib') =>
-    `${API_BASE}/research/${taskId}/export/${format}`,
+  getExportUrl: (taskId: string, format: 'md' | 'html' | 'json' | 'docx' | 'bib') => {
+    const token = localStorage.getItem('dr_token');
+    const query = token ? `?token=${encodeURIComponent(token)}` : '';
+    return `${API_BASE}/research/${taskId}/export/${format}${query}`;
+  },
 
   // Public Sharing
   createShareLink: (taskId: string) =>

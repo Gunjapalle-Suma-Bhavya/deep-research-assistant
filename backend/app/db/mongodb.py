@@ -187,12 +187,12 @@ class MongoDBManager:
         return None
 
     async def list_research_tasks(self, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        """List research tasks from MongoDB collection, optionally filtered by user_id."""
+        """List research tasks from MongoDB collection, strictly filtered by user_id."""
+        if not user_id:
+            return []
         if self.connected and self.db is not None:
             try:
-                query: Dict[str, Any] = {}
-                if user_id:
-                    query["$or"] = [{"user_id": user_id}, {"user_id": None}, {"user_id": ""}]
+                query: Dict[str, Any] = {"user_id": str(user_id)}
                 cursor = self.db.research_tasks.find(query).sort("updated_at", -1)
                 tasks = await cursor.to_list(length=100)
                 for t in tasks:
@@ -211,6 +211,18 @@ class MongoDBManager:
             except Exception:
                 pass
         return False
+
+    async def delete_research_tasks_by_user(self, user_id: str) -> int:
+        """Delete all research tasks belonging to a specific user from MongoDB."""
+        if not user_id:
+            return 0
+        if self.connected and self.db is not None:
+            try:
+                res = await self.db.research_tasks.delete_many({"user_id": str(user_id)})
+                return res.deleted_count
+            except Exception as e:
+                print(f"[MongoDB] Error deleting tasks for user {user_id}: {e}")
+        return 0
 
 
 mongo_manager = MongoDBManager()

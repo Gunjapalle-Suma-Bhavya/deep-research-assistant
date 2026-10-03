@@ -57,9 +57,16 @@ export const AppContent: React.FC = () => {
 
   useEffect(() => {
     loadConfig();
-    loadHistory();
     checkCurrentUser();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      loadHistory();
+    } else {
+      setHistoryList([]);
+    }
+  }, [user]);
 
   const loadConfig = async () => {
     try {
@@ -71,11 +78,17 @@ export const AppContent: React.FC = () => {
   };
 
   const loadHistory = async () => {
+    const token = localStorage.getItem('dr_token');
+    if (!token) {
+      setHistoryList([]);
+      return;
+    }
     try {
       const hist = await api.getHistory();
       setHistoryList(hist);
     } catch (e) {
       console.warn('Failed to load history:', e);
+      setHistoryList([]);
     }
   };
 
@@ -87,17 +100,20 @@ export const AppContent: React.FC = () => {
       setUser(profile);
     } catch (e) {
       localStorage.removeItem('dr_token');
+      setUser(null);
     }
   };
 
   const handleAuthSuccess = (authenticatedUser: User) => {
     setUser(authenticatedUser);
+    loadHistory();
     navigate('/desk');
   };
 
   const handleSignOut = () => {
     localStorage.removeItem('dr_token');
     setUser(null);
+    setHistoryList([]);
     navigate('/');
   };
 
@@ -596,6 +612,7 @@ interface TaskLoaderRouteProps extends ResearchWorkspaceProps {
 const TaskLoaderRoute: React.FC<TaskLoaderRouteProps> = (props) => {
   const { taskId } = useParams<{ taskId: string }>();
   const [loadingTask, setLoadingTask] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (taskId && taskId !== props.activeTaskId) {
@@ -614,7 +631,10 @@ const TaskLoaderRoute: React.FC<TaskLoaderRouteProps> = (props) => {
           }
         })
         .catch((err) => {
-          console.error('Failed to load task from route:', err);
+          console.warn('Failed to load task from route (redirecting to desk):', err);
+          props.setActiveTaskId(null as any);
+          props.setTaskDetail(null as any);
+          navigate('/desk', { replace: true });
         })
         .finally(() => {
           setLoadingTask(false);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Key, CheckCircle2, AlertCircle, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { X, Key, CheckCircle2, AlertCircle, RefreshCw, Eye, EyeOff, Activity, ExternalLink } from 'lucide-react';
 import { SystemConfig, ConnectionTestResult } from '../types';
 import { api } from '../services/api';
 
@@ -22,6 +22,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [model, setModel] = useState('');
   const [tavilyKey, setTavilyKey] = useState('');
   const [searchProvider, setSearchProvider] = useState('duckduckgo');
+  const [langsmithKey, setLangsmithKey] = useState('');
+  const [langchainProject, setLangchainProject] = useState('deep-research-assistant');
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<ConnectionTestResult | null>(null);
@@ -31,8 +33,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       setBaseUrl(config.openai_base_url || 'https://api.openai.com/v1');
       setModel(config.openai_model || 'gpt-4o-mini');
       setSearchProvider(config.search_provider || 'duckduckgo');
+      setLangchainProject(config.langchain_project || 'deep-research-assistant');
       setApiKey('');
       setTavilyKey('');
+      setLangsmithKey('');
     }
   }, [config, isOpen]);
 
@@ -71,6 +75,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         openai_model: model.trim(),
         tavily_api_key: tavilyKey.trim() ? tavilyKey.trim() : undefined,
         search_provider: searchProvider,
+        langsmith_api_key: langsmithKey.trim() ? langsmithKey.trim() : undefined,
+        langchain_project: langchainProject.trim() ? langchainProject.trim() : undefined,
       });
       onConfigSaved(updated);
       onClose();
@@ -185,6 +191,50 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </div>
           )}
+
+          {/* LangSmith Observability & Tracing */}
+          <div className="p-3.5 bg-cream/70 rounded-[2px] border border-edge space-y-2.5 shadow-subtle">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Activity className="w-4 h-4 text-forest shrink-0" />
+                <span className="font-serif font-bold text-xs text-ink uppercase tracking-wider">
+                  LangSmith Observability & Tracing
+                </span>
+              </div>
+              {config?.langchain_tracing_active ? (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-emerald-50 text-emerald-800 border border-emerald-300 font-mono text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                  Active & Tracing
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[2px] bg-amber-50 text-amber-800 border border-amber-300 font-mono text-[10px]">
+                  Ready to connect
+                </span>
+              )}
+            </div>
+
+            <p className="text-[11px] text-muted font-body leading-relaxed">
+              Multi-agent graph executions, LLM token usages, latency breakdowns, and node evaluations are automatically streamed to LangSmith under project{' '}
+              <code className="px-1.5 py-0.5 bg-paper rounded border border-edge text-forest font-mono font-bold text-[10px]">
+                {config?.langchain_project || 'deep-research-assistant'}
+              </code>.
+            </p>
+
+            <div className="flex items-center justify-between pt-1 border-t border-edge/60">
+              <span className="text-[11px] text-muted font-mono">
+                Key: {config?.langsmith_masked_key || 'lsv2••••••••c29b'}
+              </span>
+              <a
+                href="https://smith.langchain.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1 text-xs text-forest hover:text-forest-hover font-serif font-bold underline underline-offset-2 transition"
+              >
+                <span>Open LangSmith Dashboard</span>
+                <ExternalLink className="w-3 h-3 ml-0.5" />
+              </a>
+            </div>
+          </div>
 
           {/* Diagnostics Box */}
           {testResult && (

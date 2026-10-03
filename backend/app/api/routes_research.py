@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Response, Header
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Response, Header, Query
 from sse_starlette.sse import EventSourceResponse
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
@@ -25,6 +25,46 @@ from backend.app.services.auth_service import auth_service
 router = APIRouter(prefix="/api/research", tags=["Research"])
 
 
+def get_user_id_from_auth(
+    authorization: Optional[str] = None,
+    query_token: Optional[str] = None,
+) -> Optional[str]:
+    """Extract user_id from Bearer header or query parameter token."""
+    raw_token = None
+    if authorization and authorization.startswith("Bearer "):
+        raw_token = authorization.split(" ")[1]
+    elif query_token:
+        raw_token = query_token
+
+    if raw_token:
+        decoded = auth_service.verify_token(raw_token)
+        if decoded:
+            return decoded.get("sub")
+    return None
+
+
+def check_task_access(task: Dict[str, Any], user_id: Optional[str]) -> None:
+    """Verify read access to research task. Tasks owned by a user require authentication unless shared."""
+    task_owner = task.get("user_id")
+    if task_owner and not task.get("is_shared"):
+        if not user_id or str(task_owner) != str(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You do not have permission to access this monograph.",
+            )
+
+
+def check_task_ownership(task: Dict[str, Any], user_id: Optional[str]) -> None:
+    """Verify write/delete access to research task. Only the owner can modify or delete."""
+    task_owner = task.get("user_id")
+    if task_owner:
+        if not user_id or str(task_owner) != str(user_id):
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: You do not have permission to modify or delete this monograph.",
+            )
+
+
 @router.post("/start", response_model=Dict[str, Any])
 async def start_research_endpoint(
     payload: ResearchStartRequest,
@@ -34,12 +74,7 @@ async def start_research_endpoint(
     if not payload.query or not payload.query.strip():
         raise HTTPException(status_code=400, detail="Research query cannot be empty.")
 
-    user_id = None
-    if authorization and authorization.startswith("Bearer "):
-        token = authorization.split(" ")[1]
-        decoded = auth_service.verify_token(token)
-        if decoded:
-            user_id = decoded.get("sub")
+    user_id = get_user_id_from_auth(authorization=authorization)
 
     task_id = await research_service.start_research(
         query=payload.query.strip(),
@@ -82,37 +117,48 @@ async def submit_clarification_endpoint(payload: ClarificationSubmitRequest):
 
 
 @router.get("/status/{task_id}", response_model=ResearchTaskDetail)
-async def get_task_status(task_id: str):
+async def get_task_status(
+    task_id: str,
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+):
     """Get complete status, logs, notes, and report of a research task."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization, query_token=token)
+    check_task_access(task, user_id)
     return task
 
 
 @router.get("/stream/{task_id}")
-async def stream_task_events(task_id: str):
+async def stream_task_events(
+    task_id: str,
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+):
     """Server-Sent Events (SSE) endpoint for real-time research progress."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
 
+    user_id = get_user_id_from_auth(authorization=authorization, query_token=token)
+    check_task_access(task, user_id)
     return EventSourceResponse(research_service.event_generator(task_id))
 
 
 @router.get("/history", response_model=List[ResearchTaskSummary])
 async def list_research_history(authorization: Optional[str] = Header(None)):
-    """List all past research runs sorted by recent activity."""
-    user_id = None
-    if authorization and authorization.startswith("Bearer "):
-        token = authorization.split(" ")[1]
-        decoded = auth_service.verify_token(token)
-        if decoded:
-            user_id = decoded.get("sub")
+    """List all past research runs strictly for the current authenticated user."""
+    user_id = get_user_id_from_auth(authorization=authorization)
+    if not user_id:
+        # Never leak other users' research history to unauthenticated callers
+        return []
 
     tasks = storage.list_tasks()
-    if user_id:
-        tasks = [t for t in tasks if t.get("user_id") in (user_id, None, "")]
+    # Filter strictly to tasks created by this specific user
+    tasks = [t for t in tasks if str(t.get("user_id", "")) == str(user_id)]
 
     summaries = []
     for t in tasks:
@@ -139,11 +185,19 @@ from backend.app.services.export_service import (
 )
 
 @router.get("/{task_id}/export/{format_type}")
-async def export_research_report(task_id: str, format_type: str):
+async def export_research_report(
+    task_id: str,
+    format_type: str,
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+):
     """Export the final report in Markdown, HTML, DOCX, BibTeX, or raw JSON format."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization, query_token=token)
+    check_task_access(task, user_id)
 
     final_report = task.get("final_report")
     if not final_report or not final_report.get("full_markdown"):
@@ -197,11 +251,17 @@ async def export_research_report(task_id: str, format_type: str):
 
 
 @router.post("/{task_id}/share")
-async def create_or_toggle_share_link(task_id: str):
+async def create_or_toggle_share_link(
+    task_id: str,
+    authorization: Optional[str] = Header(None),
+):
     """Generate or retrieve a public read-only share token for a research monograph."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization)
+    check_task_ownership(task, user_id)
 
     import uuid
     if not task.get("share_token"):
@@ -242,18 +302,33 @@ async def get_shared_monograph(share_token: str):
 
 
 @router.post("/{task_id}/cancel", response_model=Dict[str, Any])
-async def cancel_research_task(task_id: str):
+async def cancel_research_task(
+    task_id: str,
+    authorization: Optional[str] = Header(None),
+):
     """Cancel a running research task."""
+    task = storage.get_task(task_id)
+    if task:
+        user_id = get_user_id_from_auth(authorization=authorization)
+        check_task_ownership(task, user_id)
+
     cancelled = await research_service.cancel_task(task_id)
     return {"success": True, "task_id": task_id, "message": "Research task cancelled."}
 
 
 @router.post("/{task_id}/audio")
-async def generate_audio_briefing_endpoint(task_id: str):
+async def generate_audio_briefing_endpoint(
+    task_id: str,
+    token: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+):
     """Generate and stream ElevenLabs AI voice audio briefing for a research report."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization, query_token=token)
+    check_task_access(task, user_id)
 
     final_report = task.get("final_report")
     if not final_report or not final_report.get("full_markdown"):
@@ -282,20 +357,34 @@ async def generate_audio_briefing_endpoint(task_id: str):
 
 
 @router.get("/{task_id}/chat")
-async def get_report_chat_history(task_id: str):
+async def get_report_chat_history(
+    task_id: str,
+    authorization: Optional[str] = Header(None),
+):
     """Retrieve chat history for inquiries conducted on a completed research monograph."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization)
+    check_task_access(task, user_id)
+
     return {"task_id": task_id, "history": task.get("chat_history", [])}
 
 
 @router.post("/{task_id}/chat", response_model=ReportChatResponse)
-async def chat_with_report(task_id: str, payload: ReportChatRequest):
+async def chat_with_report(
+    task_id: str,
+    payload: ReportChatRequest,
+    authorization: Optional[str] = Header(None),
+):
     """Conduct interactive follow-up Q&A grounded strictly in a completed research monograph."""
     task = storage.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization)
+    check_task_access(task, user_id)
 
     final_report = task.get("final_report")
     if not final_report or not final_report.get("full_markdown"):
@@ -374,15 +463,29 @@ async def chat_with_report(task_id: str, payload: ReportChatRequest):
 
 
 @router.delete("/history/clear", response_model=Dict[str, Any])
-async def clear_all_history():
-    """Clear all historical research sessions."""
-    count = storage.clear_all()
-    return {"success": True, "count": count, "message": f"Cleared {count} research sessions."}
+async def clear_all_history(authorization: Optional[str] = Header(None)):
+    """Clear all historical research sessions strictly for the authenticated user only."""
+    user_id = get_user_id_from_auth(authorization=authorization)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication required to clear research archive.")
+
+    count = storage.delete_tasks_by_user(user_id)
+    return {"success": True, "count": count, "message": f"Cleared {count} research sessions from your personal archive."}
 
 
 @router.delete("/{task_id}", response_model=Dict[str, Any])
-async def delete_research_task(task_id: str):
-    """Delete a research session and its history."""
+async def delete_research_task(
+    task_id: str,
+    authorization: Optional[str] = Header(None),
+):
+    """Delete a research session and its history, ensuring authorization."""
+    task = storage.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    user_id = get_user_id_from_auth(authorization=authorization)
+    check_task_ownership(task, user_id)
+
     deleted = storage.delete_task(task_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
