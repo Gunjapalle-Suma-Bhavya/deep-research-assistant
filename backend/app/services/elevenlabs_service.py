@@ -11,7 +11,7 @@ from typing import Optional
 from backend.app.config import settings
 
 
-def clean_markdown_for_speech(markdown_text: str, max_chars: int = 2500) -> str:
+def clean_markdown_for_speech(markdown_text: str, title: Optional[str] = None, max_chars: int = 2500) -> str:
     """Clean markdown formatting to create natural spoken text for TTS."""
     if not markdown_text:
         return "No report text available for audio briefing."
@@ -23,6 +23,8 @@ def clean_markdown_for_speech(markdown_text: str, max_chars: int = 2500) -> str:
     else:
         text = markdown_text
 
+    # Strip citations like [1], [2], [12]
+    text = re.sub(r"\[\d+\]", "", text)
     # Strip Markdown syntax (headers, bold, links, code blocks)
     text = re.sub(r"```.*?```", "", text, flags=re.DOTALL)
     text = re.sub(r"`.*?`", "", text)
@@ -32,6 +34,10 @@ def clean_markdown_for_speech(markdown_text: str, max_chars: int = 2500) -> str:
     text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
     text = re.sub(r"[-*•]\s*", "", text)
     text = re.sub(r"\n+", " ", text).strip()
+
+    # Prepend authoritative title intro if available
+    if title:
+        text = f"Research briefing on {title}. {text}"
 
     # Truncate text to avoid excessive API token costs
     if len(text) > max_chars:
@@ -43,6 +49,7 @@ def clean_markdown_for_speech(markdown_text: str, max_chars: int = 2500) -> str:
 async def generate_audio_briefing(
     task_id: str,
     markdown_content: str,
+    title: Optional[str] = None,
     api_key: Optional[str] = None,
     voice_id: Optional[str] = None,
 ) -> Path:
@@ -51,18 +58,18 @@ async def generate_audio_briefing(
     if not key:
         raise ValueError("ElevenLabs API Key is not configured. Please set ELEVENLABS_API_KEY in .env or Settings.")
 
-    selected_voice = (voice_id or settings.ELEVENLABS_VOICE_ID or "21m00Tcm4TlvDq8ikWAM").strip()
-    spoken_text = clean_markdown_for_speech(markdown_content)
+    selected_voice = (voice_id or settings.ELEVENLABS_VOICE_ID or "JBFqnCBsd6RMkjVDRZzb").strip()
+    spoken_text = clean_markdown_for_speech(markdown_content, title=title)
 
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{selected_voice}"
     headers = {
         "Accept": "audio/mpeg",
-        "Content-Type": "json",
+        "Content-Type": "application/json",
         "xi-api-key": key,
     }
     payload = {
         "text": spoken_text,
-        "model_id": "eleven_multilingual_v2",
+        "model_id": "eleven_turbo_v2_5",
         "voice_settings": {
             "stability": 0.5,
             "similarity_boost": 0.75,

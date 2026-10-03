@@ -107,7 +107,49 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
     window.print();
   };
 
+  const isSpeechSynthesisActive = useRef(false);
+
+  // Clean summary extraction for natural spoken audio briefing
+  const getSpokenSummaryText = () => {
+    let text = report.executive_summary || '';
+    if (!text && report.full_markdown) {
+      const match = report.full_markdown.match(/##\s*Executive Summary\n+([\s\S]*?)(?=\n##|\Z)/i);
+      if (match) {
+        text = match[1];
+      } else {
+        text = report.full_markdown.slice(0, 1500);
+      }
+    }
+    // Clean markdown symbols & citations
+    text = text.replace(/\[\d+\]/g, '')
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/#+\s*/g, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/[-*•]\s*/g, '')
+      .replace(/\n+/g, ' ')
+      .trim();
+
+    return `Executive research briefing on ${report.title || 'this monograph'}. ${text}`;
+  };
+
   const handleAudioToggle = async () => {
+    // 1. If currently playing via SpeechSynthesis
+    if (isSpeechSynthesisActive.current) {
+      if (window.speechSynthesis.speaking) {
+        if (isPlayingAudio) {
+          window.speechSynthesis.pause();
+          setIsPlayingAudio(false);
+        } else {
+          window.speechSynthesis.resume();
+          setIsPlayingAudio(true);
+        }
+        return;
+      }
+    }
+
+    // 2. If already generated an MP3 URL
     if (audioUrl) {
       if (audioRef.current) {
         if (isPlayingAudio) {
@@ -121,6 +163,7 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
       return;
     }
 
+    // 3. Try ElevenLabs API first
     try {
       setIsGeneratingAudio(true);
       const blob = await api.generateAudioBriefing(taskId);
@@ -133,7 +176,38 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
         }
       }, 100);
     } catch (err: any) {
-      alert(`Audio generation note: ${err.message || 'ElevenLabs API key not configured or quota exceeded.'}`);
+      console.warn('ElevenLabs API returned quota/credit limit. Engaging neural speech synthesis fallback:', err);
+      // Seamless Fallback: Browser Speech Synthesis with natural voice
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const spokenText = getSpokenSummaryText();
+        const utterance = new SpeechSynthesisUtterance(spokenText);
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const naturalVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Neural') || v.name.includes('Google') || v.name.includes('Samantha')));
+        if (naturalVoice) {
+          utterance.voice = naturalVoice;
+        }
+
+        utterance.onstart = () => {
+          isSpeechSynthesisActive.current = true;
+          setIsPlayingAudio(true);
+        };
+        utterance.onend = () => {
+          isSpeechSynthesisActive.current = false;
+          setIsPlayingAudio(false);
+        };
+        utterance.onerror = () => {
+          isSpeechSynthesisActive.current = false;
+          setIsPlayingAudio(false);
+        };
+
+        window.speechSynthesis.speak(utterance);
+      } else {
+        alert(`Audio briefing note: ${err.message || 'ElevenLabs API quota reached.'}`);
+      }
     } finally {
       setIsGeneratingAudio(false);
     }

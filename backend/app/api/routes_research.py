@@ -265,6 +265,7 @@ async def generate_audio_briefing_endpoint(task_id: str):
         audio_path = await generate_audio_briefing(
             task_id=task_id,
             markdown_content=final_report.get("full_markdown", ""),
+            title=final_report.get("title", task.get("query")),
         )
         with open(audio_path, "rb") as f:
             audio_bytes = f.read()

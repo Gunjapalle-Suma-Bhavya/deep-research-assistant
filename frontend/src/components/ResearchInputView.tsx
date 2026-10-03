@@ -43,6 +43,7 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
   const [customInstructions, setCustomInstructions] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -56,24 +57,44 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
       recognition.lang = 'en-US';
 
       recognition.onresult = (event: any) => {
-        let transcript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
+        let finalTranscript = '';
+        let interimTranscript = '';
+        for (let i = 0; i < event.results.length; i++) {
+          const item = event.results[i];
+          if (item.isFinal) {
+            finalTranscript += item[0].transcript + ' ';
+          } else {
+            interimTranscript += item[0].transcript;
+          }
         }
-        if (transcript.trim()) {
-          setQuery((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        const text = (finalTranscript + interimTranscript).trim();
+        if (text) {
+          setQuery(text);
         }
       };
 
-      recognition.onerror = () => setIsListening(false);
-      recognition.onend = () => setIsListening(false);
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        if (event.error === 'not-allowed') {
+          setSpeechError('Microphone permission denied. Please allow microphone access in your browser settings.');
+        } else if (event.error !== 'no-speech') {
+          setSpeechError(`Voice input error: ${event.error}`);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
       recognitionRef.current = recognition;
     }
   }, []);
 
   const toggleSpeech = () => {
+    setSpeechError(null);
     if (!recognitionRef.current) {
-      alert('Speech-to-Text is not supported by your browser.');
+      alert('Speech-to-Text is not supported by this browser. Chrome, Edge, and Safari are supported.');
       return;
     }
 
@@ -85,6 +106,7 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
         recognitionRef.current.start();
         setIsListening(true);
       } catch (e) {
+        console.warn('Recognition start exception:', e);
         setIsListening(false);
       }
     }
@@ -130,12 +152,42 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
         onSubmit={handleSubmit}
         className="bg-panel border border-edge rounded-[2px] shadow-subtle p-5 sm:p-7"
       >
+        {/* Recording Banner */}
+        {isListening && (
+          <div className="mb-3 p-2.5 rounded-[2px] bg-rose-50 border border-rose-300 text-rose-800 text-xs font-mono flex items-center justify-between animate-fadeIn shadow-subtle">
+            <div className="flex items-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 animate-ping shrink-0" />
+              <span className="font-semibold">🎙️ Dictating inquiry... Speak clearly into your microphone</span>
+            </div>
+            <button
+              type="button"
+              onClick={toggleSpeech}
+              className="text-[11px] underline hover:text-rose-950 font-bold cursor-pointer shrink-0 ml-2"
+            >
+              Done Dictating
+            </button>
+          </div>
+        )}
+
+        {speechError && (
+          <div className="mb-3 p-2 rounded-[2px] bg-amber-50 border border-amber-300 text-amber-800 text-xs font-mono flex items-center justify-between animate-fadeIn">
+            <span>⚠️ {speechError}</span>
+            <button
+              type="button"
+              onClick={() => setSpeechError(null)}
+              className="p-1 hover:text-amber-950 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Text Area */}
         <div className="relative">
           <textarea
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type your inquiry or research hypothesis here..."
+            placeholder="Type your inquiry or click the Voice button to dictate..."
             rows={5}
             className="w-full bg-cream text-ink placeholder-muted/60 rounded-[2px] p-4 text-base border border-edge focus:border-forest focus:ring-0 transition resize-none outline-none font-body leading-relaxed shadow-subtle"
           />
@@ -146,7 +198,7 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="p-1.5 text-muted hover:text-ink bg-panel hover:bg-cream border border-edge rounded-[2px] transition"
+                className="p-1.5 text-muted hover:text-ink bg-panel hover:bg-cream border border-edge rounded-[2px] transition cursor-pointer"
                 title="Clear input"
               >
                 <X className="w-3.5 h-3.5" />
@@ -157,7 +209,7 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
               type="button"
               onClick={handleEnhance}
               disabled={!query.trim()}
-              className="p-1.5 px-2 text-forest hover:text-forest-hover disabled:opacity-40 bg-panel hover:bg-cream border border-edge rounded-[2px] text-xs font-mono transition flex items-center space-x-1"
+              className="p-1.5 px-2 text-forest hover:text-forest-hover disabled:opacity-40 bg-panel hover:bg-cream border border-edge rounded-[2px] text-xs font-mono transition flex items-center space-x-1 cursor-pointer"
               title="Enhance prompt for deep investigation"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -167,14 +219,24 @@ export const ResearchInputView: React.FC<ResearchInputViewProps> = ({
             <button
               type="button"
               onClick={toggleSpeech}
-              className={`p-2 rounded-[2px] border text-xs font-medium transition flex items-center space-x-1 ${
+              className={`p-2 px-2.5 rounded-[2px] border text-xs font-serif font-bold transition flex items-center space-x-1.5 cursor-pointer shadow-subtle ${
                 isListening
-                  ? 'bg-rose-100 text-rose-800 border-rose-300 animate-mic-pulse'
-                  : 'bg-panel text-muted hover:text-ink border-edge hover:bg-cream'
+                  ? 'bg-rose-600 text-cream border-rose-700 animate-pulse'
+                  : 'bg-panel text-ink hover:text-forest border-edge hover:bg-cream'
               }`}
-              title={isListening ? 'Stop dictation' : 'Dictate inquiry with voice'}
+              title={isListening ? 'Stop dictation' : 'Dictate research inquiry with voice'}
             >
-              {isListening ? <MicOff className="w-4 h-4 text-rose-800" /> : <Mic className="w-4 h-4" />}
+              {isListening ? (
+                <>
+                  <MicOff className="w-4 h-4 text-cream" />
+                  <span className="text-[11px] font-mono">Listening...</span>
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4 text-forest" />
+                  <span className="text-[11px] font-mono hidden sm:inline">Voice Dictate</span>
+                </>
+              )}
             </button>
           </div>
         </div>
