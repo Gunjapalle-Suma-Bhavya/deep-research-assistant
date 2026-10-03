@@ -9,11 +9,13 @@ import {
   Share2,
   Link as LinkIcon,
   X,
+  MessageSquare,
 } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { FinalReport, CitationSource } from '../types';
 import { api } from '../services/api';
+import { ReportChatDrawer } from './ReportChatDrawer';
 
 interface ReportViewerProps {
   taskId: string;
@@ -43,6 +45,9 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isGeneratingShare, setIsGeneratingShare] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
+
+  // Inquire / Chat Drawer State
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleShareClick = async () => {
     setShowShareModal(true);
@@ -221,6 +226,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
             </button>
 
             <button
+              onClick={() => setIsChatOpen(true)}
+              className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
+              title="Conduct interactive follow-up Q&A on this monograph"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-forest" />
+              <span>Inquire</span>
+            </button>
+
+            <button
               onClick={handleCopyMarkdown}
               className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1 shadow-subtle cursor-pointer"
               title="Copy markdown text"
@@ -394,6 +408,15 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Monograph Chat & Follow-Up Drawer */}
+      <ReportChatDrawer
+        taskId={taskId}
+        reportTitle={report.title}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onSelectCitation={onSelectCitation}
+      />
     </div>
   );
 };

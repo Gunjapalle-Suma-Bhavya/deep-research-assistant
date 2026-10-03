@@ -146,3 +146,21 @@ class TokenResponse(BaseModel):
     user: UserResponse
 
 
+class ChatMessage(BaseModel):
+    role: str = Field(..., description="'user' or 'assistant'")
+    content: str = Field(..., description="Message text")
+    timestamp: Optional[str] = None
+
+
+class ReportChatRequest(BaseModel):
+    message: str = Field(..., min_length=1, description="User follow-up inquiry")
+    history: Optional[List[ChatMessage]] = Field(default_factory=list, description="Previous conversation turns")
+
+
+class ReportChatResponse(BaseModel):
+    response: str
+    task_id: str
+    timestamp: str
+    history: List[ChatMessage]
+
+

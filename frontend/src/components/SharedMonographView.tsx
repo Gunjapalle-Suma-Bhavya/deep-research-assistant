@@ -10,11 +10,13 @@ import {
   Sparkles,
   GraduationCap,
   TrendingUp,
+  MessageSquare,
 } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { api } from '../services/api';
 import { CitationInspector } from './CitationInspector';
+import { ReportChatDrawer } from './ReportChatDrawer';
 import { SharedMonographResponse } from '../types';
 
 export const SharedMonographView: React.FC = () => {
@@ -28,6 +30,7 @@ export const SharedMonographView: React.FC = () => {
   // Footnotes & Citation inspection
   const [isSourcesOpen, setIsSourcesOpen] = useState(false);
   const [selectedCitationIndex, setSelectedCitationIndex] = useState<number | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     if (!shareToken) {
@@ -243,6 +246,15 @@ export const SharedMonographView: React.FC = () => {
                 <BookOpen className="w-3.5 h-3.5 text-forest" />
                 <span>Footnotes ({data.sources.length})</span>
               </button>
+
+              <button
+                onClick={() => setIsChatOpen(true)}
+                className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
+                title="Conduct interactive follow-up Q&A on this monograph"
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-forest" />
+                <span>Inquire</span>
+              </button>
             </div>
 
             <div className="flex items-center space-x-2">
@@ -341,6 +353,15 @@ export const SharedMonographView: React.FC = () => {
         isOpen={isSourcesOpen}
         onClose={() => setIsSourcesOpen(false)}
         selectedCitationIndex={selectedCitationIndex}
+      />
+
+      {/* Monograph Chat & Follow-Up Drawer */}
+      <ReportChatDrawer
+        taskId={data.task_id}
+        reportTitle={data.final_report.title}
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        onSelectCitation={handleSelectCitation}
       />
     </div>
   );

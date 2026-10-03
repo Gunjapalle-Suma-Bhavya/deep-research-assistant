@@ -106,6 +106,19 @@ export interface SharedMonographResponse {
   share_token: string;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp?: string;
+}
+
+export interface ReportChatResponse {
+  response: string;
+  task_id: string;
+  timestamp: string;
+  history: ChatMessage[];
+}
+
 export interface ResearchTaskSummary {
   task_id: string;
   query: string;

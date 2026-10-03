@@ -7,6 +7,8 @@ import {
   ConnectionTestResult,
   ResearchTaskDetail,
   SharedMonographResponse,
+  ChatMessage,
+  ReportChatResponse,
   ResearchTaskSummary,
   ResearchDepth,
   ResearchMode,
@@ -161,6 +163,16 @@ export const api = {
 
   getSharedMonograph: (shareToken: string) =>
     request<SharedMonographResponse>(`/research/shared/${shareToken}`),
+
+  // Monograph Chat Q&A
+  getReportChatHistory: (taskId: string) =>
+    request<{ task_id: string; history: ChatMessage[] }>(`/research/${taskId}/chat`),
+
+  sendReportChatMessage: (taskId: string, message: string, history: ChatMessage[] = []) =>
+    request<ReportChatResponse>(`/research/${taskId}/chat`, {
+      method: 'POST',
+      body: JSON.stringify({ message, history }),
+    }),
 
   // History
   getHistory: () => request<ResearchTaskSummary[]>('/research/history'),

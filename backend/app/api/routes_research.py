@@ -1,20 +1,25 @@
 """Research API Routes for initiating, monitoring, and streaming research tasks."""
 
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Response
+from datetime import datetime
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Response, Header
 from sse_starlette.sse import EventSourceResponse
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_openai import ChatOpenAI
 
+from backend.app.config import settings
 from backend.app.schemas import (
     ResearchStartRequest,
     ClarificationSubmitRequest,
     ResearchTaskSummary,
     ResearchTaskDetail,
+    ReportChatRequest,
+    ReportChatResponse,
+    ChatMessage,
 )
 from backend.app.services.storage import storage
 from backend.app.services.research_service import research_service
 from backend.app.services.export_service import generate_html_document
-
-from fastapi import APIRouter, HTTPException, BackgroundTasks, Response, Header
 from backend.app.services.auth_service import auth_service
 
 router = APIRouter(prefix="/api/research", tags=["Research"])
@@ -274,6 +279,97 @@ async def generate_audio_briefing_endpoint(task_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate ElevenLabs audio briefing: {str(e)}")
 
+
+@router.get("/{task_id}/chat")
+async def get_report_chat_history(task_id: str):
+    """Retrieve chat history for inquiries conducted on a completed research monograph."""
+    task = storage.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+    return {"task_id": task_id, "history": task.get("chat_history", [])}
+
+
+@router.post("/{task_id}/chat", response_model=ReportChatResponse)
+async def chat_with_report(task_id: str, payload: ReportChatRequest):
+    """Conduct interactive follow-up Q&A grounded strictly in a completed research monograph."""
+    task = storage.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
+
+    final_report = task.get("final_report")
+    if not final_report or not final_report.get("full_markdown"):
+        raise HTTPException(status_code=400, detail="Research report not yet generated for this task.")
+
+    if not payload.message or not payload.message.strip():
+        raise HTTPException(status_code=400, detail="Inquiry message cannot be empty.")
+
+    user_query = payload.message.strip()
+    title = final_report.get("title", task.get("query", "Research Monograph"))
+    full_markdown = final_report.get("full_markdown", "")
+    sources = task.get("sources", [])
+
+    # Format source summary for grounding context
+    sources_summary = "\n".join([
+        f"[{i+1}] {s.get('title', 'Unknown')} ({s.get('url', '')}): {s.get('snippet', '')[:250]}"
+        for i, s in enumerate(sources[:30])
+    ])
+
+    system_prompt = (
+        f"You are an expert research fellow and co-author answering follow-up questions strictly regarding the completed monograph:\n"
+        f"TITLE: {title}\n"
+        f"ORIGINAL QUERY: {task.get('query')}\n\n"
+        f"--- MONOGRAPH FULL TEXT ---\n"
+        f"{full_markdown}\n\n"
+        f"--- PRIMARY SOURCES INDEX ---\n"
+        f"{sources_summary}\n\n"
+        f"INSTRUCTIONS:\n"
+        f"1. Answer the user's question directly, accurately, and thoroughly, grounded strictly in the provided monograph and verified sources.\n"
+        f"2. Reference citations with bracketed indices such as [1], [2], etc., matching the monograph when discussing factual claims.\n"
+        f"3. If the monograph or sources do not contain the answer, explicitly state that this detail was not covered in the original investigation, and summarize any related context that was found.\n"
+        f"4. Maintain an authoritative, scholarly, yet accessible editorial tone. Use markdown formatting for clarity (headings, bold text, bullet points)."
+    )
+
+    messages = [SystemMessage(content=system_prompt)]
+
+    # Add historical messages (up to last 10 turns to avoid token overflow)
+    for msg in (payload.history or [])[-10:]:
+        if msg.role == "user":
+            messages.append(HumanMessage(content=msg.content))
+        elif msg.role == "assistant":
+            messages.append(AIMessage(content=msg.content))
+
+    messages.append(HumanMessage(content=user_query))
+
+    try:
+        llm = ChatOpenAI(
+            model=settings.OPENAI_MODEL,
+            openai_api_key=settings.OPENAI_API_KEY,
+            openai_api_base=settings.OPENAI_BASE_URL,
+            temperature=0.3,
+            max_tokens=2000,
+        )
+        ai_response = await llm.ainvoke(messages)
+        answer_text = ai_response.content if hasattr(ai_response, "content") else str(ai_response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM Chat inference error: {str(e)}")
+
+    now_iso = datetime.now().isoformat()
+    user_chat = ChatMessage(role="user", content=user_query, timestamp=now_iso)
+    ai_chat = ChatMessage(role="assistant", content=answer_text, timestamp=now_iso)
+
+    # Persist in task
+    chat_history = task.get("chat_history", [])
+    chat_history.append(user_chat.model_dump())
+    chat_history.append(ai_chat.model_dump())
+    task["chat_history"] = chat_history
+    storage.save_task(task)
+
+    return ReportChatResponse(
+        response=answer_text,
+        task_id=task_id,
+        timestamp=now_iso,
+        history=[ChatMessage(**m) for m in chat_history],
+    )
 
 
 @router.delete("/history/clear", response_model=Dict[str, Any])
