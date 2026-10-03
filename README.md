@@ -1,75 +1,122 @@
-# 🔍 Deep Research Multi-Agent Assistant
+# 🏛️ Deep Research Multi-Agent Assistant
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg)](https://fastapi.tiangolo.com/)
-[![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6F00.svg)](https://www.langchain.com/langgraph)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Cyclical%20Multi--Agent-FF6F00.svg)](https://www.langchain.com/langgraph)
+[![LangSmith](https://img.shields.io/badge/LangSmith-Tracing%20%26%20Evaluation-1C3C3C.svg)](https://smith.langchain.com/)
+[![React 18](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6.svg)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-Classic%20Editorial-2A4736.svg)](https://tailwindcss.com/)
 
-> An enterprise-grade, autonomous Deep Research system built with **LangGraph**, **FastAPI**, and a **modern responsive web interface**. Performs intelligent scoping, multi-topic parallel investigation across web sources, and synthesizes publication-quality research reports with verified citations.
-
----
-
-## 🌟 Key Features
-
-- **🎯 Intelligent Scoping & Human-in-the-Loop Clarification**: Analyzes user research requests and determines if clarification is needed using structured Pydantic outputs (`ClarifyWithUser`).
-- **⚡ Parallel Multi-Agent Coordination**: A central **Research Supervisor** breaks complex briefs into distinct sub-topics and orchestrates parallel worker agents concurrently (`asyncio.gather`).
-- **🌐 Resilient Web Search & Tooling**: Supports **Tavily Search API** and includes an automatic zero-config **DuckDuckGo fallback**, so research works reliably in any environment.
-- **🔌 Model Context Protocol (MCP)**: Includes standardized adapters to connect with local and remote MCP tool servers.
-- **📝 Publication-Grade Report Synthesis**: Produces comprehensive Markdown reports complete with Executive Summaries, In-Depth Body Sections, Key Takeaways, and formal Citations.
-- **🌊 Real-Time SSE Streaming**: Live event broadcasting showing active graph nodes, search queries, tool outputs, and supervisor thoughts in real time.
-- **💻 Modern Single-Page Application**: Sleek UI with Dark/Light theme, interactive multi-agent workflow visualizer, research history, copy-to-clipboard, raw JSON inspector, and multi-format exports (Markdown, HTML, PDF).
-- **🔑 Dynamic In-App Settings & API Key Manager**: Switch between OpenAI, DeepSeek, OpenRouter, Groq, and Local Ollama directly in the browser with live connection testing.
-- **🎭 Zero-Cost Demo / Portfolio Presentation Mode**: Run realistic end-to-end multi-agent simulations with zero API key cost for interviews and reviews.
+> An enterprise-grade, autonomous **Deep Research system** combining **LangGraph cyclical multi-agent graphs**, **FastAPI**, **MongoDB Atlas**, **LangSmith observability**, and a **Classic Editorial React interface**. Performs date-aware scoping, parallel multi-topic web investigation, cross-verification, and authors publication-grade academic monographs with inline citations, voice narration, and multi-format exports.
 
 ---
 
-## 📐 System Architecture
+## 📐 System Architecture & Workflow
 
 ```
-                               ┌─────────────────────────┐
-                               │   User Research Query   │
-                               └────────────┬────────────┘
-                                            │
-                                            ▼
-                          ┌──────────────────────────────────┐
-                          │   Phase 1: Scoping Agent         │
-                          │  (ClarifyWithUser & Brief Gen)   │
-                          └─────────────────┬────────────────┘
-                                            │
-                     ┌──────────────────────┴──────────────────────┐
-                     ▼                                             ▼
-           [Clarification Needed]                           [Scope Is Clear]
-           Interactive User Prompt                                 │
-                     │                                             │
-                     └──────────────────────┬──────────────────────┘
-                                            │
-                                            ▼
-                          ┌──────────────────────────────────┐
-                          │   Phase 2: Research Supervisor   │
-                          │   (Sub-topic Task Decomposition) │
-                          └─────────────────┬────────────────┘
-                                            │
-             ┌──────────────────────────────┼──────────────────────────────┐
-             ▼                              ▼                              ▼
-  ┌──────────────────────┐       ┌──────────────────────┐       ┌──────────────────────┐
-  │ Sub-Researcher #1    │       │ Sub-Researcher #2    │       │ Sub-Researcher #3    │
-  │ • Web Search         │       │ • Web Search         │       │ • Web Search         │
-  │ • Content Summarizer │       │ • Content Summarizer │       │ • Content Summarizer │
-  └──────────┬───────────┘       └──────────┬───────────┘       └──────────┬───────────┘
-             │                              │                              │
-             └──────────────────────────────┼──────────────────────────────┘
-                                            │ (asyncio.gather)
-                                            ▼
-                          ┌──────────────────────────────────┐
-                          │   Phase 3: Report Writer         │
-                          │  (Synthesis & Formal Citations)  │
-                          └─────────────────┬────────────────┘
-                                            │
-                                            ▼
-                          ┌──────────────────────────────────┐
-                          │     Final Research Report        │
-                          │  (Markdown / HTML / PDF Export)  │
-                          └──────────────────────────────────┘
+                               ┌────────────────────────────────────────────────────────┐
+                               │               User Research Desk & Query               │
+                               │  (Text Prompt or Web Speech Voice Dictation [Mic 🎙️])  │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                                                           ▼
+                               ┌────────────────────────────────────────────────────────┐
+                               │         Phase 1: Scoping & Clarification Agent         │
+                               │     • Analyzes ambiguity, domain, and time horizon     │
+                               │     • Structured Pydantic Output: ClarifyWithUser      │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                                ┌──────────────────────────┴──────────────────────────┐
+                                ▼                                                     ▼
+                  [Clarification Required]                                   [Scope Is Well-Defined]
+               Dynamic 3-Question Modal Dialog                                        │
+                                │                                                     │
+                                └──────────────────────────┬──────────────────────────┘
+                                                           │
+                                                           ▼
+                               ┌────────────────────────────────────────────────────────┐
+                               │            Phase 2: Research Architect Brief           │
+                               │  Synthesizes query into core thesis + 3-5 subtopics    │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                                                           ▼
+                               ┌────────────────────────────────────────────────────────┐
+                               │              Phase 3: Research Supervisor              │
+                               │    • Decomposes subtopics into parallel search plans   │
+                               │    • Selects Investigation Domain Mode                 │
+                               │      (General Empirical / Academic .edu / Financial)   │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                        ┌──────────────────────────────────┼──────────────────────────────────┐
+                        ▼                                  ▼                                  ▼
+             ┌─────────────────────┐            ┌─────────────────────┐            ┌─────────────────────┐
+             │ Sub-Researcher #1   │            │ Sub-Researcher #2   │            │ Sub-Researcher #3   │
+             │ • Tavily Web Search │            │ • Tavily Web Search │            │ • Tavily Web Search │
+             │ • DuckDuckGo Fallback│           │ • DuckDuckGo Fallback│           │ • DuckDuckGo Fallback│
+             │ • Evidence Extractor│            │ • Evidence Extractor│            │ • Evidence Extractor│
+             └──────────┬──────────┘            └──────────┬──────────┘            └──────────┬──────────┘
+                        │                                  │                                  │
+                        └──────────────────────────────────┼──────────────────────────────────┘
+                                                           │ (asyncio.gather parallel execution)
+                                                           ▼
+                               ┌────────────────────────────────────────────────────────┐
+                               │              Phase 4: Synthesis & Writer               │
+                               │   • Cross-examines contradictory empirical claims      │
+                               │   • Authors publication monograph with [1], [2] links  │
+                               │   • Generates Executive Summary & Primary Dossier      │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                                                           ▼
+                               ┌────────────────────────────────────────────────────────┐
+                               │       Completed Monograph & Interaction Suite          │
+                               ├────────────────────────────────────────────────────────┤
+                               │ • 💬 "Chat with Monograph" (Grounded Follow-up Q&A)    │
+                               │ • 🔊 ElevenLabs AI Audio Briefing (with browser TTS)   │
+                               │ • 📄 Multi-Format Export (Word .docx, BibTeX, MD, HTML)│
+                               │ • 🔗 Public Sharing Link (/share/:shareToken)          │
+                               │ • 🔒 Isolated User Archive (MongoDB Atlas Persistence) │
+                               │ • 🔭 Live Tracing in LangSmith Dashboard               │
+                               └────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🌟 Key Capabilities
+
+### 1. 🤖 Cyclical Multi-Agent Graph (LangGraph)
+- **Scoping Agent**: Prevents wasted compute by determining if an inquiry is underspecified, prompting the researcher with targeted clarifying questions.
+- **Supervisor Agent**: Plans dynamic parallel workflows, orchestrating concurrent worker agents (`asyncio.gather`) across sub-topics.
+- **Domain Investigation Modes**:
+  - **General Empirical**: Unrestricted live web exploration.
+  - **Academic Mode**: Concentrates searches on `.edu`, `.org`, `arxiv.org`, `nature.com`, and peer-reviewed preprint servers.
+  - **Financial & Market Mode**: Targets SEC filings, earnings releases, regulatory disclosures, and market analytics.
+- **Synthesizer / Writer**: Compiles structured editorial sections, callout boxes, and rigorous inline bracketed citations.
+
+### 2. 💬 Interactive "Chat with Monograph"
+- Discuss completed reports directly through an editorial sliding drawer without re-running 5-minute research graphs.
+- Questions are strictly grounded in the monograph's full text and primary retrieved source dossier with bracketed reference tags (`[1]`, `[2]`).
+
+### 3. 📄 Multi-Format Export Suite
+- **Academic BibTeX (`.bib`)**: Ready for 1-click import into **Zotero**, **Mendeley**, and **LaTeX / Overleaf**.
+- **Microsoft Word (`.docx`)**: Styled with editorial publication typography, formatted headings, callout boxes, and references.
+- **Markdown (`.md`) & HTML (`.html`)**: Clean standalone documents.
+- **Structured JSON (`.json`)**: Full programmatic dump of logs, sources, and agent intermediate steps.
+- **Print / PDF**: Direct browser print rendering with editorial page margins.
+
+### 4. 🎙️ Voice Input & ElevenLabs Audio Briefings
+- **Speech-to-Text Input**: Dictate research hypotheses directly into the inquiry prompt via the Web Speech API with live audio feedback.
+- **Audio Monograph Narration**: Streams premier ElevenLabs AI voice narration (`eleven_turbo_v2_5`) with automated fallback to native browser speech synthesis.
+
+### 5. 🔒 Multi-User Archive Isolation & Security
+- **Strict User Privacy**: One user's research history is **never visible** to another user.
+- **Authentication**: JWT token verification, Google OAuth (Google Identity Services SDK), and salted password hashing.
+- **Dual-Mode Storage**: MongoDB Atlas cloud cluster with seamless resilient fallback to local JSON storage.
+- **User-Scoped Operations**: Purging archives or deleting tasks only impacts the authenticated caller's own records.
+
+### 6. 🔭 LangSmith Observability & Evaluation
+- Automatic live tracing of every agent node transition, LLM call, token usage, latency metric, and evaluation run under project `deep-research-assistant`.
+- In-app **LangSmith Observability & Tracing** card in Settings with 1-click shortcut to [smith.langchain.com](https://smith.langchain.com).
 
 ---
 
@@ -77,102 +124,157 @@
 
 ```
 deep-research-assistant/
-├── backend/                          # FastAPI Backend Application
+├── backend/                              # FastAPI Backend Application
 │   ├── app/
-│   │   ├── config.py                 # Environment configuration & settings
-│   │   ├── main.py                   # FastAPI entry point & static file mount
-│   │   ├── schemas.py                # Pydantic API schemas & data models
+│   │   ├── config.py                     # Environment, secrets & LangSmith setup
+│   │   ├── main.py                       # FastAPI entry point & React SPA server
+│   │   ├── schemas.py                    # Pydantic request/response models
+│   │   ├── db/
+│   │   │   └── mongodb.py                # MongoDB Atlas async client & hybrid fallback
 │   │   ├── services/
-│   │   │   ├── research_service.py   # Async task manager & SSE broadcaster
-│   │   │   ├── storage.py            # Research history & report persistence
-│   │   │   └── export_service.py     # Markdown, HTML, and PDF exporters
+│   │   │   ├── auth_service.py           # JWT & Google OAuth verification
+│   │   │   ├── research_service.py       # LangGraph orchestrator & SSE broadcaster
+│   │   │   ├── storage.py                # User-scoped task storage manager
+│   │   │   ├── export_service.py         # Word (.docx), BibTeX, HTML & JSON generators
+│   │   │   └── elevenlabs_service.py     # AI voice briefing synthesis
 │   │   └── api/
-│   │       ├── routes_research.py    # /api/research endpoints
-│   │       └── routes_config.py      # /api/config & /api/health endpoints
-├── frontend/                         # Modern Responsive SPA Frontend
-│   ├── index.html                    # Single Page App interface
-│   ├── css/
-│   │   └── styles.css                # Premium styling (Dark/Light mode, animations)
-│   └── js/
-│       ├── api.js                    # Backend REST client
-│       ├── stream.js                 # Server-Sent Events handler
-│       ├── graph_view.js             # Visual multi-agent workflow visualizer
-│       └── app.js                    # Main UI controller & state management
-├── notebooks/                        # Clean Tutorial Jupyter Notebooks
-│   ├── 1_scoping.ipynb               # 1. Scoping & User Clarification
-│   ├── 2_research_agent.ipynb        # 2. Research Agent with Custom Search Tools
-│   ├── 3_research_agent_mcp.ipynb    # 3. Research Agent with MCP Protocol
-│   ├── 4_research_supervisor.ipynb   # 4. Multi-Agent Supervisor & Parallelism
-│   └── 5_full_agent.ipynb            # 5. Full Multi-Agent End-to-End System
+│   │       ├── routes_auth.py            # /api/auth endpoints (Login, Signup, Google)
+│   │       ├── routes_research.py        # /api/research endpoints (Lifecycle, SSE, Chat, Export)
+│   │       └── routes_config.py          # /api/config & diagnostic health checks
+├── frontend/                             # Modern React 18 Single-Page Application
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Navbar.tsx                # Classic Editorial masthead & navigation
+│   │   │   ├── LandingPage.tsx           # Lead editorial showcase & architecture tour
+│   │   │   ├── ResearchInputView.tsx     # Voice dictation & query scoping form
+│   │   │   ├── AgentDAGVisualizer.tsx    # Live multi-agent graph state machine
+│   │   │   ├── LiveProgressFeed.tsx      # SSE streaming activity log & progress
+│   │   │   ├── ReportViewer.tsx          # Monograph reader, export menu & audio player
+│   │   │   ├── ReportChatDrawer.tsx      # Grounded follow-up chat drawer
+│   │   │   ├── CitationInspector.tsx     # Deep citation side drawer
+│   │   │   ├── ClarificationModal.tsx    # Human-in-the-loop clarification dialog
+│   │   │   ├── HistoryDrawer.tsx         # User-isolated research archives
+│   │   │   ├── AuthView.tsx              # Split-screen editorial sign-in & sign-up
+│   │   │   └── SettingsModal.tsx         # API keys & LangSmith observability status
+│   │   ├── services/
+│   │   │   ├── api.ts                    # Type-safe REST client
+│   │   │   └── sseClient.ts              # Resilient SSE client with query token auth
+│   │   ├── types/                        # Core TypeScript interfaces
+│   │   ├── App.tsx                       # Client routing (react-router-dom) & state
+│   │   └── main.tsx                      # DOM entry point
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tailwind.config.js
 ├── src/
-│   └── deep_research/                # Core reusable Python package
-│       ├── scoping.py                # Clarification & brief generation
-│       ├── supervisor.py             # Multi-agent supervisor & delegation
-│       ├── research_agent.py         # Subagent research worker
-│       ├── writer.py                 # Report synthesis & markdown generation
-│       ├── full_agent.py             # Unified end-to-end LangGraph pipeline
-│       ├── mcp_adapter.py            # Model Context Protocol adapter
-│       ├── tools.py                  # Tavily + DuckDuckGo web search
-│       └── state.py                  # Pydantic state graph schemas
-├── tests/                            # Comprehensive Test Suite
-│   ├── conftest.py
-│   ├── test_tools.py
-│   └── test_api.py
-├── .env.example                      # Configuration template
-├── .gitignore                        # Git exclusion rules
-├── pyproject.toml                    # Package metadata & dependencies
-├── requirements.txt                  # Dependency list
-├── run.py                            # One-click startup script
-└── README.md                         # Project documentation
+│   └── deep_research/                    # Reusable LangGraph Research Package
+│       ├── scoping.py                    # Scoping LLM & ClarifyWithUser
+│       ├── supervisor.py                 # Multi-agent supervisor & task planner
+│       ├── research_agent.py             # Parallel sub-researcher worker
+│       ├── writer.py                     # Monograph synthesis & citation formatter
+│       ├── full_agent.py                 # Unified cyclical StateGraph pipeline
+│       ├── tools.py                      # Tavily API + DuckDuckGo fallback
+│       └── state.py                      # Shared agent state definitions
+├── notebooks/                            # Step-by-Step Educational Notebooks
+├── run.py                                # Dual server launcher & environment health validator
+├── requirements.txt                      # Python dependencies
+└── .env.example                          # Environment template
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## ⚡ Quick Start Guide
 
-### 1. Clone & Navigate
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/deep-research-assistant.git
+git clone https://github.com/Gunjapalle-Suma-Bhavya/deep-research-assistant.git
 cd deep-research-assistant
 ```
 
-### 2. Environment Setup
+### 2. Python Environment Setup
 
 ```bash
-python3 -m venv .venv
+# Create virtual environment
+python -m venv .venv
+
+# Activate on Windows:
+.\.venv\Scripts\activate
+
+# Activate on Linux/macOS:
 source .venv/bin/activate
+
+# Install dependencies:
 pip install -r requirements.txt
 ```
 
-### 3. Configure `.env` (Optional)
+### 3. Frontend Setup
 
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+### 4. Configure Environment (`.env`)
+
+Copy the template:
 ```bash
 cp .env.example .env
 ```
 
-*(You can also configure API keys directly inside the web UI Settings modal without editing `.env` files).*
+Edit `.env` with your API keys:
+```env
+# LLM Endpoint (OpenAI, AI Credits, DeepSeek, OpenRouter, Ollama)
+OPENAI_API_KEY=your_openai_or_compatible_key
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o-mini
 
-### 4. Launch Application
+# Search Provider (Tavily or automatic DuckDuckGo fallback)
+TAVILY_API_KEY=your_tavily_key
+
+# LangSmith Observability (Optional)
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=your_langsmith_api_key
+LANGCHAIN_PROJECT=deep-research-assistant
+
+# ElevenLabs Text-to-Speech (Optional)
+ELEVENLABS_API_KEY=your_elevenlabs_key
+
+# MongoDB Database (Optional - defaults to resilient local storage)
+MONGODB_URI=your_mongodb_atlas_connection_string
+```
+
+*(Note: All API keys can also be configured directly in the web UI Settings modal without touching `.env`).*
+
+### 5. Launch the Application
 
 ```bash
 python run.py
 ```
 
-- **Web Dashboard**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- **API Documentation**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Interactive Application**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+- **Interactive API Swagger Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Vite Hot-Reload Dev Server (Optional)**: `cd frontend && npm run dev` on [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Testing
 
-Execute the automated test suite:
-
+Run backend tests:
 ```bash
 pytest tests/ -v
 ```
 
-Or using standard Python unittest:
+Run frontend test suite:
 ```bash
-python3 -m unittest discover -s tests
+cd frontend
+npm run test
 ```
+
+---
+
+## 👩‍💻 Author & Repository
+
+- **Repository**: [Gunjapalle-Suma-Bhavya/deep-research-assistant](https://github.com/Gunjapalle-Suma-Bhavya/deep-research-assistant)
+- **Author**: **Suma Bhavya** ([@Gunjapalle-Suma-Bhavya](https://github.com/Gunjapalle-Suma-Bhavya))
