@@ -259,6 +259,52 @@ python run.py
 
 ---
 
+## 🚀 Deploying to Render
+
+This application is fully production-ready for deployment on **[Render](https://render.com)** as a Web Service.
+
+### Option 1: 1-Click / Blueprint Deployment (Recommended)
+
+1. Log in to your [Render Dashboard](https://dashboard.render.com).
+2. Click **New +** > **Blueprint**.
+3. Connect your GitHub repository: `https://github.com/Gunjapalle-Suma-Bhavya/deep-research-assistant`.
+4. Render will automatically detect [`render.yaml`](render.yaml) and pre-configure the service:
+   - **Environment**: Docker (multi-stage build that compiles the React SPA and runs FastAPI)
+   - **Plan**: Free
+   - **Health Check**: `/health`
+5. Supply your environment secrets when prompted (or configure them in Web UI Settings):
+   - `OPENAI_API_KEY`: Your OpenAI or compatible API key
+   - `TAVILY_API_KEY`: (Optional) For high-relevance web search
+   - `ELEVENLABS_API_KEY`: (Optional) For voice search and audio playback
+   - `MONGODB_URI`: (Optional) MongoDB Atlas connection string
+   - `LANGSMITH_API_KEY`: (Optional) LangSmith tracing API key
+6. Click **Apply**. Render will automatically build the container and deploy your live URL.
+
+### Option 2: Manual Web Service Deployment
+
+If you prefer setting up the Web Service manually on Render:
+
+1. In Render Dashboard, click **New +** > **Web Service**.
+2. Select your repository: `Gunjapalle-Suma-Bhavya/deep-research-assistant`.
+3. Choose one of two runtime methods:
+   - **Method A (Docker - Recommended)**:
+     - **Runtime**: `Docker`
+     - **Dockerfile Path**: `./Dockerfile`
+     - Render handles both frontend compilation and backend packaging automatically.
+   - **Method B (Native Python)**:
+     - **Runtime**: `Python 3`
+     - **Build Command**: `./build.sh` (or `pip install -r requirements.txt && cd frontend && npm install && npm run build && cd ..`)
+     - **Start Command**: `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`
+4. Add your Environment Variables under the **Environment** tab:
+   - `HOST` = `0.0.0.0`
+   - `OPENAI_API_KEY` = `your_openai_key`
+   - `OPENAI_MODEL` = `gpt-4o-mini`
+   - `JWT_SECRET` = *(Generate a random 32-character secret)*
+5. Set **Health Check Path** to `/health`.
+6. Click **Create Web Service**.
+
+---
+
 ## 🧪 Testing
 
 Run backend tests:

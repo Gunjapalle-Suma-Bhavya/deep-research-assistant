@@ -48,6 +48,11 @@ app.include_router(research_router)
 app.include_router(config_router)
 app.include_router(auth_router)
 
+@app.get("/health")
+async def root_health_check():
+    """Deployment platform health check endpoint (Render, Railway, Fly.io)."""
+    return {"status": "ok", "service": "deep-research-assistant"}
+
 # Mount Frontend: Modern React distribution (dist) with fallback to legacy
 dist_dir = project_root / "frontend" / "dist"
 assets_dir = dist_dir / "assets"
@@ -65,6 +70,9 @@ if dist_dir.exists() and (dist_dir / "index.html").exists():
     @app.get("/{full_path:path}")
     async def catch_all_spa(full_path: str):
         """SPA fallback for client routes and assets."""
+        if full_path.startswith("api/"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="API route not found")
         file_path = dist_dir / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(file_path)
