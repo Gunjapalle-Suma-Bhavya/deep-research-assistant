@@ -11,6 +11,11 @@ import {
   GraduationCap,
   TrendingUp,
   MessageSquare,
+  Download,
+  ChevronDown,
+  FileText,
+  FileCode,
+  Code,
 } from 'lucide-react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
@@ -31,6 +36,7 @@ export const SharedMonographView: React.FC = () => {
   const [isSourcesOpen, setIsSourcesOpen] = useState(false);
   const [selectedCitationIndex, setSelectedCitationIndex] = useState<number | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   useEffect(() => {
     if (!shareToken) {
@@ -267,56 +273,130 @@ export const SharedMonographView: React.FC = () => {
                 <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
 
-              <button
-                onClick={handlePrint}
-                className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1 shadow-subtle cursor-pointer"
-                title="Print monograph or save as PDF"
-              >
-                <Printer className="w-3.5 h-3.5 text-muted" />
-                <span className="hidden sm:inline">PDF</span>
-              </button>
+              {/* Export Formats Dropdown (including PDF) */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsExportOpen(!isExportOpen)}
+                  className="px-3 py-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge font-serif font-bold transition flex items-center space-x-1.5 shadow-subtle cursor-pointer"
+                  title="Export monograph in multiple formats"
+                >
+                  <Download className="w-3.5 h-3.5 text-forest" />
+                  <span>Export</span>
+                  <ChevronDown className={`w-3 h-3 text-muted transition-transform duration-200 ${isExportOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-              <div className="flex items-center space-x-1 border-l border-edge pl-2">
-                <a
-                  href={api.getExportUrl(data.task_id, 'docx')}
-                  download
-                  className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle font-semibold text-forest"
-                  title="Download formatted Word document (.docx)"
-                >
-                  .DOCX
-                </a>
-                <a
-                  href={api.getExportUrl(data.task_id, 'bib')}
-                  download
-                  className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle font-semibold"
-                  title="Download academic BibTeX library (.bib)"
-                >
-                  .BIB
-                </a>
-                <a
-                  href={api.getExportUrl(data.task_id, 'md')}
-                  download
-                  className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
-                  title="Download markdown file"
-                >
-                  .MD
-                </a>
-                <a
-                  href={api.getExportUrl(data.task_id, 'html')}
-                  download
-                  className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
-                  title="Download editorial HTML file"
-                >
-                  .HTML
-                </a>
-                <a
-                  href={api.getExportUrl(data.task_id, 'json')}
-                  download
-                  className="p-1.5 rounded-[2px] bg-cream hover:bg-panel text-ink border border-edge text-[11px] font-mono shadow-subtle"
-                  title="Download raw .json data"
-                >
-                  .JSON
-                </a>
+                {isExportOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-30"
+                      onClick={() => setIsExportOpen(false)}
+                    />
+                    <div className="absolute right-0 mt-1.5 w-60 bg-cream border border-edge rounded-[2px] shadow-paper py-1.5 z-40 animate-fadeIn font-serif divide-y divide-edge">
+                      {/* PDF Manuscript */}
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            setIsExportOpen(false);
+                            handlePrint();
+                          }}
+                          className="w-full px-3 py-2 text-left hover:bg-panel flex items-center space-x-2.5 text-xs text-ink transition cursor-pointer"
+                        >
+                          <Printer className="w-4 h-4 text-forest shrink-0" />
+                          <div>
+                            <div className="font-bold">PDF Manuscript</div>
+                            <div className="text-[10px] text-muted font-mono">Print or save editorial layout as PDF</div>
+                          </div>
+                        </button>
+                      </div>
+
+                      {/* Word .docx & BibTeX .bib */}
+                      <div className="py-1">
+                        <a
+                          href={api.getExportUrl(data.task_id, 'docx')}
+                          download
+                          onClick={() => setIsExportOpen(false)}
+                          className="w-full px-3 py-2 text-left hover:bg-panel flex items-center space-x-2.5 text-xs text-ink transition cursor-pointer"
+                        >
+                          <FileText className="w-4 h-4 text-forest shrink-0" />
+                          <div>
+                            <div className="font-bold flex items-center space-x-1">
+                              <span>Word Document</span>
+                              <span className="text-[10px] font-mono text-forest font-semibold bg-panel px-1 py-0.2 rounded border border-edge">.docx</span>
+                            </div>
+                            <div className="text-[10px] text-muted font-mono">Formatted with headings & citations</div>
+                          </div>
+                        </a>
+
+                        <a
+                          href={api.getExportUrl(data.task_id, 'bib')}
+                          download
+                          onClick={() => setIsExportOpen(false)}
+                          className="w-full px-3 py-2 text-left hover:bg-panel flex items-center space-x-2.5 text-xs text-ink transition cursor-pointer"
+                        >
+                          <BookOpen className="w-4 h-4 text-forest shrink-0" />
+                          <div>
+                            <div className="font-bold flex items-center space-x-1">
+                              <span>BibTeX Library</span>
+                              <span className="text-[10px] font-mono text-ink font-semibold bg-panel px-1 py-0.2 rounded border border-edge">.bib</span>
+                            </div>
+                            <div className="text-[10px] text-muted font-mono">Zotero, Mendeley & LaTeX citations</div>
+                          </div>
+                        </a>
+                      </div>
+
+                      {/* Markdown, HTML, JSON */}
+                      <div className="py-1">
+                        <a
+                          href={api.getExportUrl(data.task_id, 'md')}
+                          download
+                          onClick={() => setIsExportOpen(false)}
+                          className="w-full px-3 py-2 text-left hover:bg-panel flex items-center space-x-2.5 text-xs text-ink transition cursor-pointer"
+                        >
+                          <FileCode className="w-4 h-4 text-muted shrink-0" />
+                          <div>
+                            <div className="font-bold flex items-center space-x-1">
+                              <span>Markdown Text</span>
+                              <span className="text-[10px] font-mono text-muted bg-panel px-1 py-0.2 rounded border border-edge">.md</span>
+                            </div>
+                            <div className="text-[10px] text-muted font-mono">Raw formatted markdown document</div>
+                          </div>
+                        </a>
+
+                        <a
+                          href={api.getExportUrl(data.task_id, 'html')}
+                          download
+                          onClick={() => setIsExportOpen(false)}
+                          className="w-full px-3 py-2 text-left hover:bg-panel flex items-center space-x-2.5 text-xs text-ink transition cursor-pointer"
+                        >
+                          <Globe className="w-4 h-4 text-muted shrink-0" />
+                          <div>
+                            <div className="font-bold flex items-center space-x-1">
+                              <span>Editorial HTML</span>
+                              <span className="text-[10px] font-mono text-muted bg-panel px-1 py-0.2 rounded border border-edge">.html</span>
+                            </div>
+                            <div className="text-[10px] text-muted font-mono">Self-contained styled web page</div>
+                          </div>
+                        </a>
+
+                        <a
+                          href={api.getExportUrl(data.task_id, 'json')}
+                          download
+                          onClick={() => setIsExportOpen(false)}
+                          className="w-full px-3 py-2 text-left hover:bg-panel flex items-center space-x-2.5 text-xs text-ink transition cursor-pointer"
+                        >
+                          <Code className="w-4 h-4 text-muted shrink-0" />
+                          <div>
+                            <div className="font-bold flex items-center space-x-1">
+                              <span>Raw Data JSON</span>
+                              <span className="text-[10px] font-mono text-muted bg-panel px-1 py-0.2 rounded border border-edge">.json</span>
+                            </div>
+                            <div className="text-[10px] text-muted font-mono">Complete task and citation payload</div>
+                          </div>
+                        </a>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
