@@ -3,6 +3,7 @@
 import os
 import re
 import asyncio
+import urllib.parse
 from typing import Dict, List, Optional, Any
 import httpx
 from bs4 import BeautifulSoup
@@ -96,38 +97,81 @@ async def tavily_search(
         return []
 
 
+def duckduckgo_direct_html_search(query: str, max_results: int = 5) -> List[SearchResult]:
+    """Direct resilient HTML search on DuckDuckGo with realistic browser headers (immune to cloud IP rate limits)."""
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+    }
+    results = []
+    try:
+        with httpx.Client(timeout=10, follow_redirects=True) as client:
+            resp = client.post("https://html.duckduckgo.com/html/", data={"q": query}, headers=headers)
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                for el in soup.select(".result"):
+                    title_elem = el.select_one(".result__title a")
+                    snippet_elem = el.select_one(".result__snippet")
+                    if title_elem and snippet_elem:
+                        raw_href = title_elem.get("href", "")
+                        parsed = urllib.parse.parse_qs(urllib.parse.urlparse(raw_href).query)
+                        clean_url = parsed.get("uddg", [raw_href])[0]
+                        title = title_elem.get_text(strip=True)
+                        snippet = snippet_elem.get_text(strip=True)
+                        if title and clean_url and not clean_url.startswith("/"):
+                            results.append(
+                                SearchResult(
+                                    title=title,
+                                    url=clean_url,
+                                    snippet=snippet,
+                                    content=snippet,
+                                )
+                            )
+                    if len(results) >= max_results:
+                        break
+    except Exception as e:
+        print(f"[Tools] Direct DDG HTML fallback error: {e}")
+    return results
+
+
 def duckduckgo_search_sync(
     query: str,
     max_results: int = 5,
     mode: str = "general",
 ) -> List[SearchResult]:
-    """Execute search query using DuckDuckGo (sync) with domain hints."""
-    if not HAS_DDG:
-        return []
-    
+    """Execute search query using DuckDuckGo (sync) with domain hints and automatic HTML fallback."""
     modified_query = query
     if mode == "academic":
         modified_query = f"{query} site:edu OR site:org OR site:arxiv.org"
     elif mode == "financial":
         modified_query = f"{query} site:sec.gov OR site:bloomberg.com OR site:reuters.com"
 
-    try:
-        ddgs = DDGS()
-        raw_results = list(ddgs.text(modified_query, max_results=max_results))
-        results = []
-        for item in raw_results:
-            results.append(
-                SearchResult(
-                    title=item.get("title", "No Title"),
-                    url=item.get("href", ""),
-                    snippet=item.get("body", ""),
-                    content=item.get("body", ""),
+    results = []
+    if HAS_DDG:
+        try:
+            ddgs = DDGS()
+            raw_results = list(ddgs.text(modified_query, max_results=max_results))
+            for item in raw_results:
+                results.append(
+                    SearchResult(
+                        title=item.get("title", "No Title"),
+                        url=item.get("href", ""),
+                        snippet=item.get("body", ""),
+                        content=item.get("body", ""),
+                    )
                 )
-            )
-        return results
-    except Exception as e:
-        print(f"[Tools] DuckDuckGo search error: {e}")
-        return []
+        except Exception as e:
+            print(f"[Tools] DuckDuckGo API notice: {e}, activating direct HTML fallback...")
+
+    # If library failed, rate-limited, or returned 0 results, use direct resilient HTML search
+    if not results:
+        results = duckduckgo_direct_html_search(modified_query, max_results=max_results)
+
+    return results
 
 
 async def search_web(
