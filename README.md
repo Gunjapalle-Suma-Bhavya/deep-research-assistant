@@ -1,5 +1,6 @@
 # 🏛️ Deep Research Multi-Agent Assistant
 
+[![Live Demo on Render](https://img.shields.io/badge/Render-Live%20Demo-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://deep-research-assistant-qzd5.onrender.com)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-009688.svg)](https://fastapi.tiangolo.com/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Cyclical%20Multi--Agent-FF6F00.svg)](https://www.langchain.com/langgraph)
@@ -7,6 +8,8 @@
 [![React 18](https://img.shields.io/badge/React-18.3.1-61DAFB.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6.svg)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-Classic%20Editorial-2A4736.svg)](https://tailwindcss.com/)
+
+> 🌐 **Live Production Deployment**: [https://deep-research-assistant-qzd5.onrender.com](https://deep-research-assistant-qzd5.onrender.com)
 
 > An enterprise-grade, autonomous **Deep Research system** combining **LangGraph cyclical multi-agent graphs**, **FastAPI**, **MongoDB Atlas**, **LangSmith observability**, and a **Classic Editorial React interface**. Performs date-aware scoping, parallel multi-topic web investigation, cross-verification, and authors publication-grade academic monographs with inline citations, voice narration, and multi-format exports.
 
@@ -261,7 +264,9 @@ python run.py
 
 ## 🚀 Deploying to Render
 
-This application is fully production-ready for deployment on **[Render](https://render.com)** as a Web Service.
+> 🌐 **Live Web Deployment**: [https://deep-research-assistant-qzd5.onrender.com](https://deep-research-assistant-qzd5.onrender.com)
+
+This application is fully production-ready and deployed on **[Render](https://render.com)** as a Web Service.
 
 ### Option 1: 1-Click / Blueprint Deployment (Recommended)
 
@@ -322,5 +327,6 @@ npm run test
 
 ## 👩‍💻 Author & Repository
 
+- **Live Deployment**: [https://deep-research-assistant-qzd5.onrender.com](https://deep-research-assistant-qzd5.onrender.com)
 - **Repository**: [Gunjapalle-Suma-Bhavya/deep-research-assistant](https://github.com/Gunjapalle-Suma-Bhavya/deep-research-assistant)
 - **Author**: **Suma Bhavya** ([@Gunjapalle-Suma-Bhavya](https://github.com/Gunjapalle-Suma-Bhavya))
